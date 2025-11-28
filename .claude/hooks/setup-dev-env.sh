@@ -23,10 +23,11 @@ fi
 if [ "$RECREATE_VENV" = true ]; then
     echo "Creating virtual environment with Python ${REQUIRED_PYTHON}..."
     uv venv --python "${REQUIRED_PYTHON}" --seed .venv
-fi
-
-# Check if dependencies are installed by verifying sugar is importable
-if ! .venv/bin/python -c "import sugar" 2>/dev/null; then
+    # Always install deps after creating fresh venv
+    echo "Installing dependencies..."
+    uv pip install -e ".[dev,test]"
+elif ! .venv/bin/python -c "import sugar" 2>/dev/null; then
+    # Existing venv but deps missing
     echo "Installing dependencies..."
     uv pip install -e ".[dev,test]"
 fi
