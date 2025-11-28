@@ -2,14 +2,13 @@
 Test Coverage Analyzer - Discover testing gaps and opportunities
 """
 
-import asyncio
-import os
-import logging
-from datetime import datetime
-from typing import List, Dict, Any, Set
-from pathlib import Path
 import ast
+import logging
+import os
 import re
+from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +86,7 @@ class TestCoverageAnalyzer:
 
         return False
 
-    async def discover(self) -> List[Dict[str, Any]]:
+    async def discover(self) -> list[dict[str, Any]]:
         """Discover testing gaps and opportunities"""
         work_items = []
 
@@ -126,7 +125,7 @@ class TestCoverageAnalyzer:
         logger.debug(f"🔍 TestCoverageAnalyzer discovered {len(work_items)} work items")
         return work_items
 
-    async def _find_untested_files(self) -> List[str]:
+    async def _find_untested_files(self) -> list[str]:
         """Find source files that don't have corresponding test files"""
         source_files = []
         test_files = set()
@@ -220,7 +219,7 @@ class TestCoverageAnalyzer:
 
         return name
 
-    async def _analyze_test_quality(self) -> List[Dict[str, Any]]:
+    async def _analyze_test_quality(self) -> list[dict[str, Any]]:
         """Analyze existing test files for quality issues"""
         test_issues = []
 
@@ -261,12 +260,12 @@ class TestCoverageAnalyzer:
 
         return test_issues
 
-    async def _analyze_test_file(self, file_path: str) -> List[Dict[str, Any]]:
+    async def _analyze_test_file(self, file_path: str) -> list[dict[str, Any]]:
         """Analyze a single test file for issues"""
         issues = []
 
         try:
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            with open(file_path, encoding="utf-8", errors="ignore") as f:
                 content = f.read()
 
             lines = content.split("\n")
@@ -298,7 +297,7 @@ class TestCoverageAnalyzer:
 
     async def _analyze_python_test_file(
         self, file_path: str, content: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Analyze Python test file"""
         issues = []
 
@@ -346,7 +345,7 @@ class TestCoverageAnalyzer:
 
     async def _analyze_js_test_file(
         self, file_path: str, content: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Analyze JavaScript/TypeScript test file"""
         issues = []
         lines = content.split("\n")
@@ -375,7 +374,7 @@ class TestCoverageAnalyzer:
 
         return issues
 
-    async def _find_complex_functions(self) -> List[Dict[str, Any]]:
+    async def _find_complex_functions(self) -> list[dict[str, Any]]:
         """Find complex functions that need testing"""
         complex_functions = []
 
@@ -422,12 +421,12 @@ class TestCoverageAnalyzer:
 
         return complex_functions[:5]  # Limit to top 5 most complex
 
-    async def _analyze_python_complexity(self, file_path: str) -> List[Dict[str, Any]]:
+    async def _analyze_python_complexity(self, file_path: str) -> list[dict[str, Any]]:
         """Analyze Python file for complex functions"""
         complex_functions = []
 
         try:
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            with open(file_path, encoding="utf-8", errors="ignore") as f:
                 content = f.read()
 
             tree = ast.parse(content)
@@ -466,10 +465,9 @@ class TestCoverageAnalyzer:
         return complexity
 
     def _create_test_work_item(
-        self, file_path: str, work_type: str, details: Dict[str, Any] = None
-    ) -> Dict[str, Any]:
+        self, file_path: str, work_type: str, details: dict[str, Any] = None
+    ) -> dict[str, Any]:
         """Create work item for testing tasks"""
-
         filename = os.path.basename(file_path)
         details = details or {}
 
@@ -516,10 +514,9 @@ class TestCoverageAnalyzer:
         return work_item
 
     def _prioritize_test_work(
-        self, work_items: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        self, work_items: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Prioritize and limit test work items"""
-
         # Sort by priority (high to low)
         work_items.sort(key=lambda x: x["priority"], reverse=True)
 

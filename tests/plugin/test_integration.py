@@ -104,8 +104,8 @@ class TestMCPServer:
     def test_mcp_server_is_executable(self, mcp_server_path):
         """Verify MCP server is executable"""
         import os
-        import stat
         import platform
+        import stat
 
         # On Windows, executability is determined differently
         if platform.system() == "Windows":

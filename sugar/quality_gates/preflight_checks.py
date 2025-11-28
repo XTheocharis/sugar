@@ -10,9 +10,9 @@ Verifies environment is ready before starting task execution:
 """
 
 import asyncio
-import socket
-from typing import Any, Dict, List, Tuple
 import logging
+import socket
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +45,7 @@ class PreFlightChecker:
 
         Args:
             config: Configuration dictionary
+
         """
         preflight_config = config.get("pre_flight_checks", {})
         self.enabled = preflight_config.get("enabled", False)
@@ -56,8 +57,8 @@ class PreFlightChecker:
         return self.enabled
 
     async def run_all_checks(
-        self, task: Dict[str, Any]
-    ) -> Tuple[bool, List[PreFlightCheckResult]]:
+        self, task: dict[str, Any]
+    ) -> tuple[bool, list[PreFlightCheckResult]]:
         """
         Run all pre-flight checks
 
@@ -66,6 +67,7 @@ class PreFlightChecker:
 
         Returns:
             Tuple of (all_passed, list of check results)
+
         """
         if not self.is_enabled():
             return True, []
@@ -98,7 +100,7 @@ class PreFlightChecker:
         return all_passed, results
 
     async def _run_single_check(
-        self, check_config: Dict[str, Any]
+        self, check_config: dict[str, Any]
     ) -> PreFlightCheckResult:
         """
         Run a single pre-flight check
@@ -108,6 +110,7 @@ class PreFlightChecker:
 
         Returns:
             PreFlightCheckResult
+
         """
         check_name = check_config.get("name")
         check_type = check_config.get("type")
@@ -132,7 +135,7 @@ class PreFlightChecker:
                 error=f"Unsupported check type: {check_type}",
             )
 
-    async def _check_port(self, check_config: Dict[str, Any]) -> PreFlightCheckResult:
+    async def _check_port(self, check_config: dict[str, Any]) -> PreFlightCheckResult:
         """Check if a port is listening"""
         check_name = check_config.get("name")
         port = check_config.get("port")
@@ -171,7 +174,7 @@ class PreFlightChecker:
             )
 
     async def _check_command(
-        self, check_config: Dict[str, Any]
+        self, check_config: dict[str, Any]
     ) -> PreFlightCheckResult:
         """Check if a command runs successfully"""
         check_name = check_config.get("name")
@@ -208,7 +211,7 @@ class PreFlightChecker:
                     message=f"Command exited with code {exit_code}",
                 )
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error(f"Command check timed out: {command}")
                 process.kill()
                 return PreFlightCheckResult(
@@ -227,7 +230,7 @@ class PreFlightChecker:
                 error=str(e),
             )
 
-    async def _check_tools(self, check_config: Dict[str, Any]) -> PreFlightCheckResult:
+    async def _check_tools(self, check_config: dict[str, Any]) -> PreFlightCheckResult:
         """Check if required tools are available"""
         check_name = check_config.get("name")
         tools = check_config.get("tools", [])
@@ -272,7 +275,7 @@ class PreFlightChecker:
         )
 
     async def _check_git_status(
-        self, check_config: Dict[str, Any]
+        self, check_config: dict[str, Any]
     ) -> PreFlightCheckResult:
         """Check git working directory state"""
         check_name = check_config.get("name")
@@ -318,7 +321,7 @@ class PreFlightChecker:
             passed = len(issues) == 0
 
             if passed:
-                logger.debug(f"✅ Git status check passed")
+                logger.debug("✅ Git status check passed")
             else:
                 logger.warning(f"❌ Git status check failed: {', '.join(issues)}")
 
@@ -340,7 +343,7 @@ class PreFlightChecker:
             )
 
     async def _check_file_exists(
-        self, check_config: Dict[str, Any]
+        self, check_config: dict[str, Any]
     ) -> PreFlightCheckResult:
         """Check if a file exists"""
         from pathlib import Path
@@ -372,7 +375,7 @@ class PreFlightChecker:
                 error=str(e),
             )
 
-    def _get_required_checks_for_task(self, task_type: str) -> List[Dict[str, Any]]:
+    def _get_required_checks_for_task(self, task_type: str) -> list[dict[str, Any]]:
         """
         Get required checks for a task type
 
@@ -381,6 +384,7 @@ class PreFlightChecker:
 
         Returns:
             List of check configurations required for this task
+
         """
         required_checks = []
 

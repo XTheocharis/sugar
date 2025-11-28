@@ -2,14 +2,13 @@
 Work Queue - Manage work items with priorities and persistence
 """
 
-import asyncio
 import json
 import logging
-import sqlite3
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
-import aiosqlite
 import uuid
+from datetime import datetime
+from typing import Any
+
+import aiosqlite
 
 logger = logging.getLogger(__name__)
 
@@ -226,7 +225,7 @@ class WorkQueue:
         pass
 
     async def work_exists(
-        self, source_file: str, exclude_statuses: List[str] = None
+        self, source_file: str, exclude_statuses: list[str] = None
     ) -> bool:
         """Check if work item with given source_file already exists"""
         if exclude_statuses is None:
@@ -245,7 +244,7 @@ class WorkQueue:
             count = (await cursor.fetchone())[0]
             return count > 0
 
-    async def add_work(self, work_item: Dict[str, Any]) -> str:
+    async def add_work(self, work_item: dict[str, Any]) -> str:
         """Add a new work item to the queue"""
         work_id = str(uuid.uuid4())
 
@@ -280,7 +279,7 @@ class WorkQueue:
         )
         return work_id
 
-    async def get_next_work(self) -> Optional[Dict[str, Any]]:
+    async def get_next_work(self) -> dict[str, Any] | None:
         """Get the highest priority pending work item"""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
@@ -335,7 +334,7 @@ class WorkQueue:
 
             return work_item
 
-    async def complete_work(self, work_id: str, result: Dict[str, Any]):
+    async def complete_work(self, work_id: str, result: dict[str, Any]):
         """Mark a work item as completed with results and timing"""
         async with aiosqlite.connect(self.db_path) as db:
             # Extract execution time from result
@@ -445,7 +444,7 @@ class WorkQueue:
 
             await db.commit()
 
-    async def get_work_item(self, work_id: str) -> Optional[Dict[str, Any]]:
+    async def get_work_item(self, work_id: str) -> dict[str, Any] | None:
         """Get a specific work item by ID"""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
@@ -477,8 +476,8 @@ class WorkQueue:
             return work_item
 
     async def get_recent_work(
-        self, limit: int = 10, status: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        self, limit: int = 10, status: str | None = None
+    ) -> list[dict[str, Any]]:
         """Get recent work items, optionally filtered by status"""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
@@ -514,7 +513,7 @@ class WorkQueue:
 
             return work_items
 
-    async def get_stats(self) -> Dict[str, int]:
+    async def get_stats(self) -> dict[str, int]:
         """Get queue statistics"""
         async with aiosqlite.connect(self.db_path) as db:
             stats = {}
@@ -554,13 +553,11 @@ class WorkQueue:
         """Clean up old completed/failed items"""
         async with aiosqlite.connect(self.db_path) as db:
             cursor = await db.execute(
-                """
+                f"""
                 DELETE FROM work_items 
                 WHERE status IN ('completed', 'failed') 
-                AND created_at < datetime('now', '-{} days')
-            """.format(
-                    days_old
-                )
+                AND created_at < datetime('now', '-{days_old} days')
+            """
             )
 
             deleted_count = cursor.rowcount
@@ -571,7 +568,7 @@ class WorkQueue:
 
             return deleted_count
 
-    async def get_work_by_id(self, work_id: str) -> Optional[Dict[str, Any]]:
+    async def get_work_by_id(self, work_id: str) -> dict[str, Any] | None:
         """Get specific work item by ID"""
         async with aiosqlite.connect(self.db_path) as db:
             async with db.execute(
@@ -617,7 +614,7 @@ class WorkQueue:
             await db.commit()
             return cursor.rowcount > 0
 
-    async def update_work(self, work_id: str, updates: Dict[str, Any]) -> bool:
+    async def update_work(self, work_id: str, updates: dict[str, Any]) -> bool:
         """Update work item by ID"""
         if not updates:
             return False
@@ -714,7 +711,7 @@ class WorkQueue:
             "status": "healthy",
         }
 
-    async def get_pending_work(self, limit: int = 10) -> List[Dict[str, Any]]:
+    async def get_pending_work(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get pending work items ordered by priority"""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
@@ -763,12 +760,12 @@ class WorkQueue:
             )
             await db.commit()
 
-    async def mark_work_completed(self, work_id: str, result: Dict[str, Any]):
+    async def mark_work_completed(self, work_id: str, result: dict[str, Any]):
         """Mark a work item as completed"""
         await self.complete_work(work_id, result)
 
     async def mark_work_failed(
-        self, work_id: str, error_info: Dict[str, Any], max_retries: int = 3
+        self, work_id: str, error_info: dict[str, Any], max_retries: int = 3
     ):
         """Mark a work item as failed"""
         error_message = error_info.get("error", "Unknown error")

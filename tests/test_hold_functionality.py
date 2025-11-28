@@ -3,12 +3,6 @@ Tests for Sugar hold/release functionality
 """
 
 import pytest
-import asyncio
-import tempfile
-from pathlib import Path
-from datetime import datetime
-
-from sugar.storage.work_queue import WorkQueue
 
 
 class TestHoldFunctionality:

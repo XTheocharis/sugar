@@ -9,10 +9,10 @@ Handles verification failures with:
 """
 
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class FailureReport:
         self.retry_attempts = 0
         self.escalated = False
 
-    def add_evidence(self, evidence_type: str, data: Dict[str, Any]):
+    def add_evidence(self, evidence_type: str, data: dict[str, Any]):
         """Add evidence to report"""
         self.evidence.append(
             {
@@ -84,6 +84,7 @@ class VerificationFailureHandler:
 
         Args:
             config: Configuration dictionary
+
         """
         handler_config = config.get("verification_failure_handling", {})
         self.enabled = handler_config.get("enabled", False)
@@ -123,7 +124,7 @@ class VerificationFailureHandler:
         task_id: str,
         test_result: Any,
         retry_count: int,
-    ) -> tuple[bool, Optional[FailureReport]]:
+    ) -> tuple[bool, FailureReport | None]:
         """
         Handle test execution failure
 
@@ -134,6 +135,7 @@ class VerificationFailureHandler:
 
         Returns:
             Tuple of (should_retry, failure_report)
+
         """
         if not self.is_enabled():
             return False, None
@@ -171,9 +173,9 @@ class VerificationFailureHandler:
     async def handle_functional_verification_failure(
         self,
         task_id: str,
-        verification_results: List[Any],
+        verification_results: list[Any],
         retry_count: int,
-    ) -> tuple[bool, Optional[FailureReport]]:
+    ) -> tuple[bool, FailureReport | None]:
         """
         Handle functional verification failure
 
@@ -184,6 +186,7 @@ class VerificationFailureHandler:
 
         Returns:
             Tuple of (should_retry, failure_report)
+
         """
         if not self.is_enabled():
             return False, None
@@ -223,8 +226,8 @@ class VerificationFailureHandler:
     async def handle_success_criteria_failure(
         self,
         task_id: str,
-        criteria_results: List[Any],
-    ) -> Optional[FailureReport]:
+        criteria_results: list[Any],
+    ) -> FailureReport | None:
         """
         Handle success criteria not being met
 
@@ -234,6 +237,7 @@ class VerificationFailureHandler:
 
         Returns:
             Optional failure report
+
         """
         if not self.is_enabled():
             return None
@@ -271,6 +275,7 @@ class VerificationFailureHandler:
 
         Args:
             report: Failure report
+
         """
         if not self.escalate_config.get("enabled", True):
             return
@@ -308,6 +313,7 @@ class VerificationFailureHandler:
 
         Returns:
             Max retry count
+
         """
         if failure_type == "test_execution":
             return self.test_max_retries
@@ -325,12 +331,13 @@ class VerificationFailureHandler:
 
         Returns:
             True if enhanced debugging should be collected
+
         """
         if failure_type == "functional_verification":
             return bool(self.functional_failure_config.get("enhanced_debugging", []))
         return False
 
-    def get_enhanced_debugging_actions(self, failure_type: str) -> List[str]:
+    def get_enhanced_debugging_actions(self, failure_type: str) -> list[str]:
         """
         Get enhanced debugging actions for failure type
 
@@ -339,6 +346,7 @@ class VerificationFailureHandler:
 
         Returns:
             List of debugging actions
+
         """
         if failure_type == "functional_verification":
             return self.functional_failure_config.get("enhanced_debugging", [])

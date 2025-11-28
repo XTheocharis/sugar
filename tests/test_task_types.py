@@ -5,15 +5,14 @@ Tests the full CLI workflow, database operations, migration, and integration.
 """
 
 import asyncio
-import json
 import os
 import tempfile
-import pytest
 from pathlib import Path
-from unittest.mock import patch
+
+import pytest
 from click.testing import CliRunner
 
-from sugar.main import cli, task_type
+from sugar.main import cli
 from sugar.storage.task_type_manager import TaskTypeManager
 from sugar.storage.work_queue import WorkQueue
 
@@ -564,9 +563,9 @@ sugar:
                     "general-purpose",
                 ],
             )
-            assert (
-                type_result.exit_code == 0
-            ), f"Task type creation failed: {type_result.output}"
+            assert type_result.exit_code == 0, (
+                f"Task type creation failed: {type_result.output}"
+            )
 
             # Use it in sugar add command
             result = runner.invoke(

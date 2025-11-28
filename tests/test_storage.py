@@ -2,11 +2,9 @@
 Tests for Sugar storage and work queue functionality
 """
 
-import pytest
 import asyncio
-import tempfile
-from pathlib import Path
-from datetime import datetime
+
+import pytest
 
 from sugar.storage.work_queue import WorkQueue
 
@@ -345,7 +343,6 @@ class TestTimingTracking:
         work_item = await queue.get_next_work()
 
         # Simulate some time passing
-        import asyncio
 
         await asyncio.sleep(0.01)  # 10ms
 
@@ -441,7 +438,6 @@ class TestTimingTracking:
         work_item = await queue.get_next_work()
 
         # Simulate some time passing
-        import asyncio
 
         await asyncio.sleep(0.1)  # 100ms
 

@@ -9,12 +9,9 @@ Verifies that fixes actually work in the running application through:
 
 import asyncio
 import json
-import subprocess
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 import logging
-import re
+from datetime import datetime
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +57,7 @@ class FunctionalVerifier:
 
         Args:
             config: Configuration dictionary
+
         """
         verification_config = config.get("quality_gates", {}).get(
             "functional_verification", {}
@@ -75,9 +73,9 @@ class FunctionalVerifier:
 
     async def verify_all(
         self,
-        verifications: List[Dict[str, Any]],
-        changed_files: List[str] = None,
-    ) -> Tuple[bool, List[FunctionalVerificationResult]]:
+        verifications: list[dict[str, Any]],
+        changed_files: list[str] = None,
+    ) -> tuple[bool, list[FunctionalVerificationResult]]:
         """
         Run all functional verifications
 
@@ -87,6 +85,7 @@ class FunctionalVerifier:
 
         Returns:
             Tuple of (all_verified, list of results)
+
         """
         if not self.is_enabled():
             return True, []
@@ -118,7 +117,7 @@ class FunctionalVerifier:
         return all_verified, results
 
     async def _verify_single(
-        self, verification_def: Dict[str, Any]
+        self, verification_def: dict[str, Any]
     ) -> FunctionalVerificationResult:
         """
         Verify a single functional requirement
@@ -128,6 +127,7 @@ class FunctionalVerifier:
 
         Returns:
             FunctionalVerificationResult
+
         """
         verification_type = verification_def.get("type")
 
@@ -154,7 +154,7 @@ class FunctionalVerifier:
             )
 
     async def _verify_http_request(
-        self, verification_def: Dict[str, Any]
+        self, verification_def: dict[str, Any]
     ) -> FunctionalVerificationResult:
         """Verify HTTP request returns expected result"""
         url = verification_def.get("url")
@@ -233,14 +233,14 @@ class FunctionalVerifier:
             )
 
     async def _verify_http_status_code(
-        self, verification_def: Dict[str, Any]
+        self, verification_def: dict[str, Any]
     ) -> FunctionalVerificationResult:
         """Verify HTTP status code (simpler version)"""
         # Delegate to http_request verification
         return await self._verify_http_request(verification_def)
 
     async def _verify_browser_element(
-        self, verification_def: Dict[str, Any]
+        self, verification_def: dict[str, Any]
     ) -> FunctionalVerificationResult:
         """
         Verify browser element exists (requires MCP Chrome DevTools)
@@ -276,7 +276,7 @@ class FunctionalVerifier:
         )
 
     async def _verify_browser_screenshot(
-        self, verification_def: Dict[str, Any]
+        self, verification_def: dict[str, Any]
     ) -> FunctionalVerificationResult:
         """
         Take screenshot for verification (requires MCP Chrome DevTools)
@@ -297,7 +297,7 @@ class FunctionalVerifier:
         )
 
     async def _verify_database_query(
-        self, verification_def: Dict[str, Any]
+        self, verification_def: dict[str, Any]
     ) -> FunctionalVerificationResult:
         """
         Verify database query result
@@ -318,7 +318,7 @@ class FunctionalVerifier:
         )
 
     async def _verify_port_listening(
-        self, verification_def: Dict[str, Any]
+        self, verification_def: dict[str, Any]
     ) -> FunctionalVerificationResult:
         """Verify that a port is listening"""
         port = verification_def.get("port")
@@ -359,8 +359,8 @@ class FunctionalVerifier:
             )
 
     def _auto_detect_verifications(
-        self, changed_files: List[str]
-    ) -> List[Dict[str, Any]]:
+        self, changed_files: list[str]
+    ) -> list[dict[str, Any]]:
         """
         Auto-detect required verifications based on changed files
 
@@ -369,6 +369,7 @@ class FunctionalVerifier:
 
         Returns:
             List of verification definitions
+
         """
         verifications = []
         patterns = self.auto_detect.get("patterns", [])

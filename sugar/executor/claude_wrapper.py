@@ -5,21 +5,19 @@ Claude Code CLI Wrapper - Execute development tasks with Claude and context pers
 import asyncio
 import json
 import logging
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, Any, Optional, Union
-import tempfile
 import os
+from datetime import datetime
+from typing import Any
 
+from ..storage.task_type_manager import TaskTypeManager
 from .structured_request import (
-    StructuredRequest,
-    StructuredResponse,
-    RequestBuilder,
-    ExecutionMode,
     AgentType,
     DynamicAgentType,
+    ExecutionMode,
+    RequestBuilder,
+    StructuredRequest,
+    StructuredResponse,
 )
-from ..storage.task_type_manager import TaskTypeManager
 
 logger = logging.getLogger(__name__)
 
@@ -86,9 +84,8 @@ class ClaudeWrapper:
         logger.debug(f"📋 Context strategy: {self.context_strategy}")
         logger.debug(f"🏗️ Structured requests: {self.use_structured_requests}")
 
-    async def execute_work(self, work_item: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute_work(self, work_item: dict[str, Any]) -> dict[str, Any]:
         """Execute a work item using Claude Code CLI with context persistence"""
-
         if self.dry_run:
             return await self._simulate_execution(work_item)
 
@@ -108,9 +105,8 @@ class ClaudeWrapper:
                 "work_item_id": work_item["id"],
             }
 
-    def _should_continue_session(self, work_item: Dict[str, Any]) -> bool:
+    def _should_continue_session(self, work_item: dict[str, Any]) -> bool:
         """Determine if we should continue the previous Claude session"""
-
         if not self.use_continuous:
             return False
 
@@ -149,17 +145,17 @@ class ClaudeWrapper:
 
         return should_continue
 
-    def _load_session_state(self) -> Dict[str, Any]:
+    def _load_session_state(self) -> dict[str, Any]:
         """Load session state from file"""
         try:
             if os.path.exists(self.session_state_file):
-                with open(self.session_state_file, "r") as f:
+                with open(self.session_state_file) as f:
                     return json.load(f)
         except Exception as e:
             logger.warning(f"Could not load session state: {e}")
         return {}
 
-    def _is_context_too_old(self, session_state: Dict[str, Any]) -> bool:
+    def _is_context_too_old(self, session_state: dict[str, Any]) -> bool:
         """Check if the last session is too old"""
         try:
             last_time = datetime.fromisoformat(
@@ -171,7 +167,7 @@ class ClaudeWrapper:
             return True
 
     def _are_tasks_related(
-        self, work_item: Dict[str, Any], session_state: Dict[str, Any]
+        self, work_item: dict[str, Any], session_state: dict[str, Any]
     ) -> bool:
         """Determine if current task is related to previous tasks"""
         # Check if tasks are in same component or area
@@ -201,7 +197,7 @@ class ClaudeWrapper:
 
         return False
 
-    def _update_session_state(self, work_item: Dict[str, Any], simulated: bool = False):
+    def _update_session_state(self, work_item: dict[str, Any], simulated: bool = False):
         """Update session state after execution"""
         session_state = {
             "last_execution_time": datetime.utcnow().isoformat(),
@@ -227,8 +223,8 @@ class ClaudeWrapper:
         return session_state.get("execution_count", 0)
 
     def _prepare_context(
-        self, work_item: Dict[str, Any], continue_session: bool = False
-    ) -> Dict[str, Any]:
+        self, work_item: dict[str, Any], continue_session: bool = False
+    ) -> dict[str, Any]:
         """Prepare execution context for Claude with continuation awareness"""
         context = {
             "work_item": work_item,
@@ -242,7 +238,7 @@ class ClaudeWrapper:
         # Load existing context if available
         if os.path.exists(self.context_file):
             try:
-                with open(self.context_file, "r") as f:
+                with open(self.context_file) as f:
                     existing_context = json.load(f)
                     context.update(existing_context)
             except Exception as e:
@@ -259,28 +255,27 @@ class ClaudeWrapper:
 
     def _create_task_prompt(
         self,
-        work_item: Dict[str, Any],
-        context: Dict[str, Any],
+        work_item: dict[str, Any],
+        context: dict[str, Any],
         continue_session: bool = False,
     ) -> str:
         """Create a structured prompt for Claude with embedded task details"""
-
         if continue_session:
             # Continuation prompt with embedded task details
             prompt = f"""Continuing our development work on this project.
 
-## Next Task: {work_item['title']}
-- **Type**: {work_item['type']} 
-- **Priority**: {work_item['priority']}/5
-- **Source**: {work_item.get('source', 'manual')}
+## Next Task: {work_item["title"]}
+- **Type**: {work_item["type"]} 
+- **Priority**: {work_item["priority"]}/5
+- **Source**: {work_item.get("source", "manual")}
 
 ## Task Description
-{work_item['description']}
+{work_item["description"]}
 
 ## Task Context
-{json.dumps(work_item.get('context', {}), indent=2)}
+{json.dumps(work_item.get("context", {}), indent=2)}
 
-This is task #{context['execution_count']} in our current development session. Building on our previous work in this project, please:
+This is task #{context["execution_count"]} in our current development session. Building on our previous work in this project, please:
 
 1. **Analyze the task** in the context of what we've already accomplished  
 2. **Implement the solution** following the patterns and practices we've established
@@ -297,17 +292,17 @@ This is task #{context['execution_count']} in our current development session. B
 Hello! I'm working with Sugar, an autonomous development system. I have a specific task to implement.
 
 ## Task Information
-- **Type**: {work_item['type']}
-- **Priority**: {work_item['priority']}/5
-- **Title**: {work_item['title']}
-- **ID**: {work_item['id']}
-- **Source**: {work_item.get('source', 'manual')}
+- **Type**: {work_item["type"]}
+- **Priority**: {work_item["priority"]}/5
+- **Title**: {work_item["title"]}
+- **ID**: {work_item["id"]}
+- **Source**: {work_item.get("source", "manual")}
 
 ## Task Description
-{work_item['description']}
+{work_item["description"]}
 
 ## Task Context
-{json.dumps(work_item.get('context', {}), indent=2)}
+{json.dumps(work_item.get("context", {}), indent=2)}
 
 ## Instructions
 Please implement this task by:
@@ -331,14 +326,14 @@ Please implement this task by:
         return prompt.strip()
 
     async def _execute_claude_cli(
-        self, prompt: str, context: Dict[str, Any], continue_session: bool = False
-    ) -> Dict[str, Any]:
+        self, prompt: str, context: dict[str, Any], continue_session: bool = False
+    ) -> dict[str, Any]:
         """Execute the Claude CLI command with the given prompt and optional continuation"""
         start_time = datetime.utcnow()
 
         if continue_session:
             # Use --continue flag to maintain conversation context with --print for non-interactive mode
-            logger.debug(f"🔄 Executing Claude CLI with --continue")
+            logger.debug("🔄 Executing Claude CLI with --continue")
             cmd = [
                 self.command,
                 "--continue",
@@ -348,7 +343,7 @@ Please implement this task by:
             ]
         else:
             # Fresh session with --print for non-interactive mode
-            logger.debug(f"🆕 Executing Claude CLI with fresh session")
+            logger.debug("🆕 Executing Claude CLI with fresh session")
             cmd = [self.command, "--print", "--permission-mode", "bypassPermissions"]
 
         # Log more details about execution
@@ -357,9 +352,9 @@ Please implement this task by:
         logger.debug(f"📄 Prompt length: {len(prompt)} characters")
         logger.debug(f"⏱️ Timeout set to: {self.timeout}s")
         if continue_session:
-            logger.debug(f"🔄 Using continuation mode - prompt will be sent via stdin")
+            logger.debug("🔄 Using continuation mode - prompt will be sent via stdin")
         else:
-            logger.debug(f"🆕 Fresh session - prompt will be sent via stdin")
+            logger.debug("🆕 Fresh session - prompt will be sent via stdin")
 
         try:
             process = await asyncio.create_subprocess_exec(
@@ -378,7 +373,7 @@ Please implement this task by:
                     process.communicate(input=prompt.encode("utf-8")),
                     timeout=self.timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error(f"⏰ Claude CLI execution timed out after {self.timeout}s")
                 process.kill()
                 raise Exception(f"Claude CLI execution timed out after {self.timeout}s")
@@ -414,7 +409,7 @@ Please implement this task by:
 
             # Process results
             if process.returncode == 0:
-                logger.debug(f"✅ Claude execution successful")
+                logger.debug("✅ Claude execution successful")
                 return {
                     "stdout": stdout_text,
                     "stderr": stderr_text,
@@ -439,7 +434,7 @@ Please implement this task by:
             logger.error(f"❌ Claude CLI execution error: {e}")
             raise
 
-    async def _simulate_execution(self, work_item: Dict[str, Any]) -> Dict[str, Any]:
+    async def _simulate_execution(self, work_item: dict[str, Any]) -> dict[str, Any]:
         """Simulate Claude execution for testing (dry run mode) with continuation support"""
         should_continue = self._should_continue_session(work_item)
 
@@ -487,7 +482,7 @@ Please implement this task by:
         )
         return simulation_result
 
-    def _generate_simulated_files(self, work_item: Dict[str, Any]) -> list:
+    def _generate_simulated_files(self, work_item: dict[str, Any]) -> list:
         """Generate realistic file names for simulation"""
         task_type = work_item["type"].lower()
 
@@ -695,8 +690,8 @@ Please implement this task by:
             return False
 
     async def _execute_structured_work(
-        self, work_item: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, work_item: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute work using structured request format with agent selection"""
         try:
             # Select agent based on work item characteristics
@@ -776,7 +771,7 @@ Please implement this task by:
             else:
                 raise
 
-    async def _execute_legacy_work(self, work_item: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_legacy_work(self, work_item: dict[str, Any]) -> dict[str, Any]:
         """Execute work using legacy prompt format"""
         # Determine if we should continue previous session
         should_continue = self._should_continue_session(work_item)
@@ -817,8 +812,8 @@ Please implement this task by:
         }
 
     def _select_agent_for_work(
-        self, work_item: Dict[str, Any]
-    ) -> Optional[Union[AgentType, DynamicAgentType]]:
+        self, work_item: dict[str, Any]
+    ) -> AgentType | DynamicAgentType | None:
         """Select the best agent for a work item based on task characteristics"""
         if not self.enable_agents:
             return None
@@ -922,9 +917,7 @@ Please implement this task by:
         # Validate agent availability and return appropriate type
         return self._get_agent_type(selected_agent_name)
 
-    def _get_agent_type(
-        self, agent_name: str
-    ) -> Optional[Union[AgentType, DynamicAgentType]]:
+    def _get_agent_type(self, agent_name: str) -> AgentType | DynamicAgentType | None:
         """Get agent type, supporting both built-in and custom agents"""
         if not agent_name:
             return AgentType.GENERAL_PURPOSE
@@ -990,7 +983,7 @@ Please process this structured request by:
 
     async def _execute_claude_cli_structured(
         self, prompt: str, structured_request: StructuredRequest
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Execute Claude CLI with structured request support"""
         start_time = datetime.utcnow()
 
@@ -1006,7 +999,7 @@ Please process this structured request by:
             # For now, we execute normally but track that an agent was intended
             cmd = [self.command, "--print", "--permission-mode", "bypassPermissions"]
         else:
-            logger.debug(f"📝 Executing structured request in basic mode")
+            logger.debug("📝 Executing structured request in basic mode")
             cmd = [self.command, "--print", "--permission-mode", "bypassPermissions"]
 
         # Log execution details
@@ -1030,7 +1023,7 @@ Please process this structured request by:
                     process.communicate(input=prompt.encode("utf-8")),
                     timeout=self.timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error(
                     f"⏰ Structured Claude execution timed out after {self.timeout}s"
                 )

@@ -4,19 +4,16 @@ Tests for Quality Gates - Phase 1 Features
 Tests mandatory test execution, success criteria verification, and truth enforcement.
 """
 
-import pytest
-import asyncio
 from pathlib import Path
-from unittest.mock import Mock, AsyncMock, patch
+
+import pytest
 
 from sugar.quality_gates import (
-    TestExecutionValidator,
-    TestExecutionResult,
-    SuccessCriteriaVerifier,
-    SuccessCriterion,
-    TruthEnforcer,
     EvidenceCollector,
     QualityGatesCoordinator,
+    SuccessCriteriaVerifier,
+    TestExecutionValidator,
+    TruthEnforcer,
 )
 
 

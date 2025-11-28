@@ -3,13 +3,12 @@ GitHub Issue Watcher - Discover work from GitHub issues and PRs
 Supports both GitHub CLI (gh) and PyGithub authentication
 """
 
-import asyncio
-import logging
-import subprocess
 import json
+import logging
 import os
+import subprocess
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from typing import Any
 
 # Optional PyGithub import
 try:
@@ -128,7 +127,7 @@ class GitHubWatcher:
             logger.error(f"Failed to initialize PyGithub: {e}")
             return False
 
-    async def discover(self) -> List[Dict[str, Any]]:
+    async def discover(self) -> list[dict[str, Any]]:
         """Discover work items from GitHub issues and PRs"""
         if not self.enabled:
             return []
@@ -151,7 +150,7 @@ class GitHubWatcher:
         logger.debug(f"🔍 GitHubWatcher discovered {len(work_items)} work items")
         return work_items
 
-    async def _discover_issues_gh_cli(self) -> List[Dict[str, Any]]:
+    async def _discover_issues_gh_cli(self) -> list[dict[str, Any]]:
         """Discover work from GitHub issues using GitHub CLI"""
         work_items = []
 
@@ -220,7 +219,7 @@ class GitHubWatcher:
 
         return work_items
 
-    async def _discover_issues_pygithub(self) -> List[Dict[str, Any]]:
+    async def _discover_issues_pygithub(self) -> list[dict[str, Any]]:
         """Discover work from GitHub issues using PyGithub"""
         work_items = []
 
@@ -279,11 +278,8 @@ class GitHubWatcher:
 
         return work_items
 
-    def _create_work_item_from_issue_data(
-        self, issue: dict
-    ) -> Optional[Dict[str, Any]]:
+    def _create_work_item_from_issue_data(self, issue: dict) -> dict[str, Any] | None:
         """Create work item from GitHub issue data (works with both CLI and PyGithub)"""
-
         # Determine work type from labels
         work_type = "feature"  # default
         priority = 3  # default
@@ -556,7 +552,6 @@ class GitHubWatcher:
         self, issue_labels: list, config_labels: list, original_config: list
     ) -> bool:
         """Determine if an issue should be included based on label filtering configuration"""
-
         # Mode 1: Empty list [] - No filtering, include ALL issues
         if not original_config:
             return True
@@ -613,7 +608,7 @@ class GitHubWatcher:
 
     async def create_pull_request(
         self, branch_name: str, title: str, body: str, base_branch: str = "main"
-    ) -> Optional[str]:
+    ) -> str | None:
         """Create a pull request from a branch"""
         if not self.enabled:
             return None
@@ -706,7 +701,7 @@ class GitHubWatcher:
 
     async def _create_pr_via_gh_cli(
         self, branch_name: str, title: str, body: str, base_branch: str = "main"
-    ) -> Optional[str]:
+    ) -> str | None:
         """Create PR using GitHub CLI"""
         try:
             gh_command = self.config.get("gh_cli", {}).get("command", "gh")
@@ -742,7 +737,7 @@ class GitHubWatcher:
 
     async def _create_pr_via_pygithub(
         self, branch_name: str, title: str, body: str, base_branch: str = "main"
-    ) -> Optional[str]:
+    ) -> str | None:
         """Create PR using PyGithub"""
         try:
             repo = self.github.get_repo(self.repo_name)

@@ -4,22 +4,21 @@ Sugar Core Loop - The heart of autonomous development
 
 import asyncio
 import logging
-from datetime import datetime, timedelta
-from typing import Optional, List
-import yaml
-from pathlib import Path
+from datetime import datetime
 
+import yaml
+
+from ..__version__ import get_version_info
+from ..discovery.code_quality import CodeQualityScanner
 from ..discovery.error_monitor import ErrorLogMonitor
 from ..discovery.github_watcher import GitHubWatcher
-from ..discovery.code_quality import CodeQualityScanner
 from ..discovery.test_coverage import TestCoverageAnalyzer
 from ..executor.claude_wrapper import ClaudeWrapper
-from ..storage.work_queue import WorkQueue
-from ..learning.feedback_processor import FeedbackProcessor
 from ..learning.adaptive_scheduler import AdaptiveScheduler
+from ..learning.feedback_processor import FeedbackProcessor
+from ..storage.work_queue import WorkQueue
 from ..utils.git_operations import GitOperations
 from ..workflow.orchestrator import WorkflowOrchestrator
-from ..__version__ import get_version_info
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +90,7 @@ class SugarLoop:
     def _load_config(self, config_path: str) -> dict:
         """Load Sugar configuration"""
         try:
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 return yaml.safe_load(f)
         except FileNotFoundError:
             logger.error(f"Config file not found: {config_path}")
@@ -207,7 +206,7 @@ class SugarLoop:
                         # If we get here, shutdown was requested
                         logger.info("🛑 Shutdown detected in sleep loop, exiting...")
                         return  # Exit the main loop immediately
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         # Normal timeout, continue sleeping
                         remaining_sleep -= sleep_chunk
                         # Check if shutdown was set during the chunk
@@ -229,7 +228,7 @@ class SugarLoop:
                         )
                         logger.info("🛑 Shutdown requested during error recovery")
                         return  # Exit immediately
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         remaining_recovery -= recovery_chunk
 
     async def _discover_work(self):
@@ -1048,7 +1047,7 @@ class SugarLoop:
 
     async def _create_pull_request(
         self, work_item: dict, result: dict, branch_info: dict, workflow_config: dict
-    ) -> Optional[str]:
+    ) -> str | None:
         """Create a pull request"""
         try:
             github_watcher = self._get_github_watcher()
@@ -1144,7 +1143,6 @@ class SugarLoop:
             if work_item.get("source_type") == "github_watcher" and work_item.get(
                 "context", {}
             ).get("github_issue"):
-
                 github_watcher = self._get_github_watcher()
                 if github_watcher:
                     issue_number = work_item["context"]["github_issue"].get("number")
@@ -1168,7 +1166,7 @@ class SugarLoop:
 
         return "Completed work via Sugar AI"
 
-    def _get_github_watcher(self) -> Optional[GitHubWatcher]:
+    def _get_github_watcher(self) -> GitHubWatcher | None:
         """Get the GitHub watcher module"""
         for module in self.discovery_modules:
             if isinstance(module, GitHubWatcher):
