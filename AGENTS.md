@@ -74,7 +74,7 @@ mypy sugar  # May have many warnings - type annotations in progress
 
 # Security scanning
 bandit -r sugar/
-safety check
+pip-audit
 ```
 
 ### Error Handling During Testing

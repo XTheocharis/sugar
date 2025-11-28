@@ -148,7 +148,7 @@ ruff check . --fix
 ruff format .
 
 # Security
-bandit, safety, npm audit
+bandit, pip-audit, npm audit
 
 # Testing
 pytest --cov, jest --coverage
