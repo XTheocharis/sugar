@@ -28,10 +28,20 @@ source .venv/bin/activate
 sugar --version
 ```
 
-### Session Start Hook
-A Claude Code session hook automatically sets up the environment:
-- `.claude/hooks/setup-dev-env.sh` - Creates venv, installs deps
-- `.claude/settings.json` - Configures the hook
+### Claude Code Hooks
+Two hooks automatically manage the development environment:
+
+**SessionStart Hook** (`.claude/hooks/setup-dev-env.sh`):
+- Creates venv with Python 3.13 if missing or outdated
+- Installs project dependencies via `uv pip install -e ".[dev,test]"`
+- Runs `sugar init` to initialize Sugar configuration
+
+**Bash PreToolUse Hook** (`.claude/hooks/ensure-venv.sh`):
+- Automatically activates the venv for all bash commands
+- Skips activation for system commands (git, ls, cd, etc.)
+- Skips if command already uses venv binaries directly
+
+Both hooks are configured in `.claude/settings.json`.
 
 ### Run Commands
 ```bash

@@ -35,4 +35,12 @@ fi
 echo "Verifying sugar installation..."
 .venv/bin/python -c "from sugar.__version__ import __version__; print(f'Sugar v{__version__} ready')"
 
+# Initialize Sugar configuration if not already done
+if [ ! -d ".sugar" ]; then
+    echo "Initializing Sugar configuration..."
+    .venv/bin/sugar init
+else
+    echo "Sugar configuration already initialized"
+fi
+
 echo "Development environment ready!"
