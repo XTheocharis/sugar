@@ -6,12 +6,10 @@ Blocks commits if tests haven't been executed or if they fail.
 """
 
 import asyncio
+import logging
 import re
-import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +71,7 @@ class TestExecutionValidator:
 
         Args:
             config: Quality gates configuration dictionary
+
         """
         self.config = config.get("quality_gates", {}).get("mandatory_testing", {})
         self.enabled = self.config.get("enabled", False)
@@ -86,8 +85,8 @@ class TestExecutionValidator:
         return self.enabled
 
     async def validate_tests_before_commit(
-        self, task: dict, changed_files: List[str]
-    ) -> Tuple[bool, Optional[TestExecutionResult], str]:
+        self, task: dict, changed_files: list[str]
+    ) -> tuple[bool, TestExecutionResult | None, str]:
         """
         Validate that tests have been run before allowing a commit
 
@@ -97,6 +96,7 @@ class TestExecutionValidator:
 
         Returns:
             Tuple of (can_commit, test_result, message)
+
         """
         if not self.is_enabled():
             return True, None, "Test validation disabled"
@@ -129,7 +129,7 @@ class TestExecutionValidator:
 
         return True, None, "No tests executed"
 
-    def _determine_required_tests(self, changed_files: List[str]) -> List[str]:
+    def _determine_required_tests(self, changed_files: list[str]) -> list[str]:
         """
         Determine which test commands are required based on changed files
 
@@ -138,6 +138,7 @@ class TestExecutionValidator:
 
         Returns:
             List of test commands to execute
+
         """
         auto_detect = self.config.get("auto_detect_required_tests", {})
         if not auto_detect.get("enabled", False):
@@ -176,6 +177,7 @@ class TestExecutionValidator:
 
         Returns:
             TestExecutionResult with execution details
+
         """
         logger.info(f"Executing test command: {command}")
         start_time = datetime.utcnow()
@@ -231,7 +233,7 @@ class TestExecutionValidator:
                 errors=1,
             )
 
-    def _parse_test_output(self, output: str) -> Tuple[int, int, int, int]:
+    def _parse_test_output(self, output: str) -> tuple[int, int, int, int]:
         """
         Parse test output to extract statistics
 
@@ -245,6 +247,7 @@ class TestExecutionValidator:
 
         Returns:
             Tuple of (failures, errors, pending, examples)
+
         """
         failures = 0
         errors = 0
@@ -293,6 +296,7 @@ class TestExecutionValidator:
         Args:
             task: Task metadata
             result: Test execution result
+
         """
         evidence_path_template = self.evidence_config.get(
             "path", ".sugar/test_evidence/{task_id}.txt"
@@ -305,14 +309,14 @@ class TestExecutionValidator:
 
         # Write evidence
         with open(evidence_path, "w") as f:
-            f.write(f"Test Execution Evidence\n")
+            f.write("Test Execution Evidence\n")
             f.write(f"{'=' * 60}\n\n")
             f.write(f"Task ID: {task_id}\n")
             f.write(f"Command: {result.command}\n")
             f.write(f"Timestamp: {result.timestamp}\n")
             f.write(f"Duration: {result.duration:.2f}s\n")
             f.write(f"Exit Code: {result.exit_code}\n")
-            f.write(f"\nResults:\n")
+            f.write("\nResults:\n")
             f.write(f"  Examples: {result.examples}\n")
             f.write(f"  Failures: {result.failures}\n")
             f.write(f"  Errors: {result.errors}\n")
@@ -336,6 +340,7 @@ class TestExecutionValidator:
 
         Returns:
             String to append to commit message
+
         """
         if not self.evidence_config.get("include_in_commit_message", False):
             return ""
@@ -345,5 +350,5 @@ Test Evidence:
 - Command: {result.command}
 - Examples: {result.examples}, Failures: {result.failures}, Errors: {result.errors}
 - Duration: {result.duration:.2f}s
-- Status: {'✅ PASSED' if result.passed else '❌ FAILED'}
+- Status: {"✅ PASSED" if result.passed else "❌ FAILED"}
 """

@@ -3,8 +3,8 @@ Workflow Orchestrator - Apply consistent git/GitHub workflows to all Sugar work
 """
 
 import logging
-from typing import Dict, Any, Optional, List
 from enum import Enum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class WorkflowType(Enum):
 class WorkflowOrchestrator:
     """Manages consistent workflows for all Sugar work items"""
 
-    def __init__(self, config: Dict[str, Any], git_ops=None, work_queue=None):
+    def __init__(self, config: dict[str, Any], git_ops=None, work_queue=None):
         self.config = config
         self.git_ops = git_ops
         self.work_queue = work_queue
@@ -37,7 +37,7 @@ class WorkflowOrchestrator:
             self.quality_gates = QualityGatesCoordinator(config)
             logger.info("🔒 Quality Gates enabled for workflow validation")
 
-    def _load_workflow_config(self) -> Dict[str, Any]:
+    def _load_workflow_config(self) -> dict[str, Any]:
         """Load and validate workflow configuration"""
         workflow_config = self.config.get("sugar", {}).get("workflow", {})
 
@@ -94,7 +94,7 @@ class WorkflowOrchestrator:
         logger.debug(f"🔧 Loaded workflow config for {profile.value} profile")
         return merged
 
-    def get_workflow_for_work_item(self, work_item: Dict[str, Any]) -> Dict[str, Any]:
+    def get_workflow_for_work_item(self, work_item: dict[str, Any]) -> dict[str, Any]:
         """Determine appropriate workflow for a work item"""
         source_type = work_item.get("source_type", "unknown")
         work_type = work_item.get("work_type", "unknown")
@@ -148,7 +148,7 @@ class WorkflowOrchestrator:
         return templates.get(work_type, "chore: {title}")
 
     def format_commit_message(
-        self, work_item: Dict[str, Any], workflow: Dict[str, Any]
+        self, work_item: dict[str, Any], workflow: dict[str, Any]
     ) -> str:
         """Format commit message according to workflow style"""
         template = workflow["commit_message_template"]
@@ -172,7 +172,7 @@ class WorkflowOrchestrator:
 
         return message
 
-    async def prepare_work_execution(self, work_item: Dict[str, Any]) -> Dict[str, Any]:
+    async def prepare_work_execution(self, work_item: dict[str, Any]) -> dict[str, Any]:
         """Prepare work item for execution with proper workflow"""
         workflow = self.get_workflow_for_work_item(work_item)
 
@@ -200,9 +200,9 @@ class WorkflowOrchestrator:
 
     async def complete_work_execution(
         self,
-        work_item: Dict[str, Any],
-        workflow: Dict[str, Any],
-        execution_result: Dict[str, Any],
+        work_item: dict[str, Any],
+        workflow: dict[str, Any],
+        execution_result: dict[str, Any],
     ) -> bool:
         """Complete workflow after work execution"""
         if not workflow.get("auto_commit", True):
@@ -231,10 +231,11 @@ class WorkflowOrchestrator:
                 claims = self._extract_claims_from_result(execution_result)
 
                 # Validate with quality gates
-                can_commit, gate_result = (
-                    await self.quality_gates.validate_before_commit(
-                        task=work_item, changed_files=changed_files, claims=claims
-                    )
+                (
+                    can_commit,
+                    gate_result,
+                ) = await self.quality_gates.validate_before_commit(
+                    task=work_item, changed_files=changed_files, claims=claims
                 )
 
                 if not can_commit:
@@ -309,7 +310,7 @@ class WorkflowOrchestrator:
             logger.error(f"❌ Workflow completion failed: {e}")
             return False
 
-    def _generate_branch_name(self, work_item: Dict[str, Any]) -> str:
+    def _generate_branch_name(self, work_item: dict[str, Any]) -> str:
         """Generate branch name for work item"""
         source_type = work_item.get("source_type", "sugar")
         work_id = work_item.get("id", "unknown")[:8]  # Short ID
@@ -321,7 +322,7 @@ class WorkflowOrchestrator:
 
         return f"sugar/{source_type}/{work_type}-{clean_title}-{work_id}"
 
-    async def _get_changed_files(self) -> List[str]:
+    async def _get_changed_files(self) -> list[str]:
         """Get list of changed files for quality gate validation"""
         if not self.git_ops:
             return []
@@ -334,8 +335,8 @@ class WorkflowOrchestrator:
             return []
 
     def _extract_claims_from_result(
-        self, execution_result: Dict[str, Any]
-    ) -> List[str]:
+        self, execution_result: dict[str, Any]
+    ) -> list[str]:
         """Extract claims from execution result for truth enforcement"""
         claims = []
 

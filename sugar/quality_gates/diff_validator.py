@@ -9,9 +9,9 @@ Validates changes before commit:
 """
 
 import asyncio
-import re
-from typing import Any, Dict, List, Tuple
 import logging
+import re
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +42,7 @@ class DiffValidator:
 
         Args:
             config: Configuration dictionary
+
         """
         diff_config = config.get("git_diff_validation", {})
         self.enabled = diff_config.get("enabled", False)
@@ -71,9 +72,9 @@ class DiffValidator:
 
     async def validate_diff(
         self,
-        task: Dict[str, Any],
-        changed_files: List[str],
-    ) -> Tuple[bool, DiffValidationResult]:
+        task: dict[str, Any],
+        changed_files: list[str],
+    ) -> tuple[bool, DiffValidationResult]:
         """
         Validate git diff before commit
 
@@ -83,6 +84,7 @@ class DiffValidator:
 
         Returns:
             Tuple of (is_valid, validation_result)
+
         """
         if not self.is_enabled():
             return True, DiffValidationResult(
@@ -129,7 +131,7 @@ class DiffValidator:
         )
 
     async def _validate_files_changed(
-        self, expected_files: List[str], changed_files: List[str]
+        self, expected_files: list[str], changed_files: list[str]
     ) -> DiffValidationResult:
         """Validate that changed files match expectations"""
         unexpected_files = []
@@ -166,7 +168,7 @@ class DiffValidator:
         )
 
     async def _validate_change_size(
-        self, changed_files: List[str]
+        self, changed_files: list[str]
     ) -> DiffValidationResult:
         """Validate size of changes is reasonable"""
         try:
@@ -227,7 +229,7 @@ class DiffValidator:
             )
 
     async def _validate_patterns(
-        self, changed_files: List[str]
+        self, changed_files: list[str]
     ) -> DiffValidationResult:
         """Validate no disallowed patterns in changes"""
         violations = []

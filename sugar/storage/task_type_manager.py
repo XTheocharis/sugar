@@ -6,8 +6,6 @@ Integrates with the existing WorkQueue storage system.
 
 import json
 import logging
-from typing import Dict, List, Optional
-from datetime import datetime
 
 import aiosqlite
 
@@ -20,7 +18,7 @@ class TaskTypeManager:
     def __init__(self, db_path: str):
         self.db_path = db_path
 
-    async def get_all_task_types(self) -> List[Dict]:
+    async def get_all_task_types(self) -> list[dict]:
         """Get all task types from the database"""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
@@ -46,7 +44,7 @@ class TaskTypeManager:
 
             return result
 
-    async def get_task_type(self, type_id: str) -> Optional[Dict]:
+    async def get_task_type(self, type_id: str) -> dict | None:
         """Get a specific task type by ID"""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
@@ -71,7 +69,7 @@ class TaskTypeManager:
 
             return None
 
-    async def get_task_type_ids(self) -> List[str]:
+    async def get_task_type_ids(self) -> list[str]:
         """Get all task type IDs for CLI validation"""
         async with aiosqlite.connect(self.db_path) as db:
             cursor = await db.execute("SELECT id FROM task_types ORDER BY name ASC")
@@ -86,7 +84,7 @@ class TaskTypeManager:
         agent: str = "general-purpose",
         commit_template: str = None,
         emoji: str = None,
-        file_patterns: List[str] = None,
+        file_patterns: list[str] = None,
     ) -> bool:
         """Add a new task type"""
         if not commit_template:
@@ -131,7 +129,7 @@ class TaskTypeManager:
         agent: str = None,
         commit_template: str = None,
         emoji: str = None,
-        file_patterns: List[str] = None,
+        file_patterns: list[str] = None,
     ) -> bool:
         """Update an existing task type"""
         # First check if task type exists
@@ -217,7 +215,7 @@ class TaskTypeManager:
                 logger.error(f"Error removing task type '{type_id}': {e}")
                 return False
 
-    async def export_task_types(self) -> List[Dict]:
+    async def export_task_types(self) -> list[dict]:
         """Export all non-default task types for version control"""
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
@@ -250,7 +248,7 @@ class TaskTypeManager:
             return result
 
     async def import_task_types(
-        self, task_types: List[Dict], overwrite: bool = False
+        self, task_types: list[dict], overwrite: bool = False
     ) -> int:
         """Import task types from external source"""
         imported_count = 0
@@ -318,7 +316,7 @@ class TaskTypeManager:
             else f"{type_id}: {{title}}"
         )
 
-    async def get_file_patterns_for_type(self, type_id: str) -> List[str]:
+    async def get_file_patterns_for_type(self, type_id: str) -> list[str]:
         """Get the file patterns for a task type"""
         task_type = await self.get_task_type(type_id)
         return task_type.get("file_patterns", []) if task_type else []

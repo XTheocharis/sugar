@@ -2,14 +2,13 @@
 Code Quality Scanner - Discover improvement opportunities in the codebase
 """
 
-import asyncio
-import os
-import logging
-from datetime import datetime
-from typing import List, Dict, Any, Set
-from pathlib import Path
 import ast
+import logging
+import os
 import re
+from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +59,7 @@ class CodeQualityScanner:
         )
         self.max_files_per_scan = config.get("max_files_per_scan", 50)
 
-    async def discover(self) -> List[Dict[str, Any]]:
+    async def discover(self) -> list[dict[str, Any]]:
         """Discover code quality improvement opportunities"""
         work_items = []
 
@@ -98,7 +97,7 @@ class CodeQualityScanner:
         logger.debug(f"🔍 CodeQualityScanner discovered {len(work_items)} work items")
         return work_items
 
-    async def _get_files_to_scan(self) -> List[str]:
+    async def _get_files_to_scan(self) -> list[str]:
         """Get list of files to scan for quality issues"""
         files = []
 
@@ -152,12 +151,12 @@ class CodeQualityScanner:
                 return True
         return False
 
-    async def _analyze_file(self, file_path: str) -> List[Dict[str, Any]]:
+    async def _analyze_file(self, file_path: str) -> list[dict[str, Any]]:
         """Analyze a single file for quality issues"""
         issues = []
 
         try:
-            with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            with open(file_path, encoding="utf-8", errors="ignore") as f:
                 content = f.read()
 
             # Different analyzers based on file type
@@ -176,7 +175,7 @@ class CodeQualityScanner:
 
     async def _analyze_python_file(
         self, file_path: str, content: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Analyze Python file for quality issues"""
         issues = []
         lines = content.split("\n")
@@ -258,7 +257,7 @@ class CodeQualityScanner:
 
     async def _analyze_javascript_file(
         self, file_path: str, content: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Analyze JavaScript/TypeScript file for quality issues"""
         issues = []
         lines = content.split("\n")
@@ -309,7 +308,7 @@ class CodeQualityScanner:
 
     async def _analyze_generic_issues(
         self, file_path: str, content: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Analyze generic code quality issues"""
         issues = []
         lines = content.split("\n")
@@ -357,10 +356,9 @@ class CodeQualityScanner:
         return issues
 
     def _create_work_item_from_issue(
-        self, issue: Dict[str, Any], file_path: str
-    ) -> Dict[str, Any]:
+        self, issue: dict[str, Any], file_path: str
+    ) -> dict[str, Any]:
         """Create work item from code quality issue"""
-
         severity_to_priority = {"high": 4, "medium": 3, "low": 2}
 
         priority = severity_to_priority.get(issue["severity"], 2)
@@ -393,7 +391,7 @@ class CodeQualityScanner:
 
         return work_item
 
-    def _generate_title_from_issue(self, issue: Dict[str, Any], file_path: str) -> str:
+    def _generate_title_from_issue(self, issue: dict[str, Any], file_path: str) -> str:
         """Generate work item title from quality issue"""
         filename = os.path.basename(file_path)
 
@@ -412,7 +410,7 @@ class CodeQualityScanner:
         return title_templates.get(issue["type"], f"Improve code quality in {filename}")
 
     def _generate_description_from_issue(
-        self, issue: Dict[str, Any], file_path: str
+        self, issue: dict[str, Any], file_path: str
     ) -> str:
         """Generate detailed description from quality issue"""
         description_parts = [
@@ -427,16 +425,15 @@ class CodeQualityScanner:
 
         if "content" in issue:
             description_parts.extend(
-                ["", "**Code Context:**", f"```", issue["content"], f"```"]
+                ["", "**Code Context:**", "```", issue["content"], "```"]
             )
 
         return "\n".join(description_parts)
 
     def _deduplicate_and_prioritize(
-        self, work_items: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        self, work_items: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Remove duplicates and limit to most important items"""
-
         # Group by file and issue type to avoid spam
         seen = set()
         filtered_items = []

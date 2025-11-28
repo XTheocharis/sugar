@@ -2,17 +2,19 @@
 """
 Sugar Main Entry Point - Start the AI-powered autonomous development system
 """
+
 import asyncio
 import json
 import logging
 import signal
 import sys
-from pathlib import Path
-import click
 from datetime import datetime
+from pathlib import Path
 
+import click
+
+from .__version__ import __version__, get_version_info
 from .core.loop import SugarLoop
-from .__version__ import get_version_info, __version__
 
 
 def validate_task_type(ctx, param, value):
@@ -21,9 +23,11 @@ def validate_task_type(ctx, param, value):
         return value
 
     try:
-        import yaml
-        from .storage.task_type_manager import TaskTypeManager
         import asyncio
+
+        import yaml
+
+        from .storage.task_type_manager import TaskTypeManager
 
         # Get config file path from context
         config_file = (
@@ -33,7 +37,7 @@ def validate_task_type(ctx, param, value):
         )
 
         async def get_types():
-            with open(config_file, "r") as f:
+            with open(config_file) as f:
                 config = yaml.safe_load(f)
             db_path = config["sugar"]["storage"]["database"]
             manager = TaskTypeManager(db_path)
@@ -51,7 +55,7 @@ def validate_task_type(ctx, param, value):
             f"Invalid choice: {value}. (choose from {choices_str})"
         )
 
-    except Exception as e:
+    except Exception:
         # Fallback validation to default types
         fallback_choices = ["bug_fix", "feature", "test", "refactor", "documentation"]
         if value in fallback_choices:
@@ -145,7 +149,7 @@ shutdown_event = None
 
 def signal_handler(signum, frame):
     """Handle shutdown signals gracefully"""
-    logger.info(f"🛑 Shutdown signal received, stopping Sugar...")
+    logger.info("🛑 Shutdown signal received, stopping Sugar...")
     if shutdown_event:
         shutdown_event.set()
         logger.info("🔔 Shutdown event triggered")
@@ -179,7 +183,7 @@ def cli(ctx, config, debug, version):
         try:
             import yaml
 
-            with open(config, "r") as f:
+            with open(config) as f:
                 config_data = yaml.safe_load(f)
             log_file_path = (
                 config_data.get("sugar", {})
@@ -204,9 +208,6 @@ def cli(ctx, config, debug, version):
 )
 def init(project_dir):
     """Initialize Sugar in a project directory"""
-    import shutil
-    import json
-
     project_path = Path(project_dir).resolve()
     sugar_dir = project_path / ".sugar"
 
@@ -328,7 +329,6 @@ def add(
     - Stdin input (--stdin with JSON data)
     - JSON description parsing (--json with --description containing JSON)
     """
-
     if urgent:
         priority = 5
 
@@ -338,7 +338,7 @@ def add(
     try:
         # Method 1: JSON file input
         if input_file:
-            with open(input_file, "r") as f:
+            with open(input_file) as f:
                 task_data_override = json.load(f)
 
         # Method 2: Stdin input
@@ -372,15 +372,16 @@ def add(
         description = f"Task: {title}"
 
     # Import here to avoid circular imports
-    from .storage.work_queue import WorkQueue
     import uuid
+
+    from .storage.work_queue import WorkQueue
 
     try:
         config_file = ctx.obj["config"]
         # Load config to get database path
         import yaml
 
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         # Initialize work queue
@@ -465,13 +466,13 @@ def add(
 @click.pass_context
 def list(ctx, status, limit, task_type, output_format):
     """List tasks in Sugar work queue"""
+    import yaml
 
     from .storage.work_queue import WorkQueue
-    import yaml
 
     try:
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         work_queue = WorkQueue(config["sugar"]["storage"]["database"])
@@ -589,13 +590,13 @@ def list(ctx, status, limit, task_type, output_format):
 @click.pass_context
 def view(ctx, task_id, output_format):
     """View detailed information about a specific task"""
+    import yaml
 
     from .storage.work_queue import WorkQueue
-    import yaml
 
     try:
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         work_queue = WorkQueue(config["sugar"]["storage"]["database"])
@@ -619,7 +620,7 @@ def view(ctx, task_id, output_format):
 
         priority_str = "🚨" if task["priority"] == 5 else f"P{task['priority']}"
 
-        click.echo(f"\n📋 Task Details")
+        click.echo("\n📋 Task Details")
         click.echo("=" * 50)
         click.echo(f"{status_emoji} {priority_str} [{task['type']}] {task['title']}")
         click.echo(f"📝 Description: {task.get('description', 'No description')}")
@@ -652,7 +653,7 @@ def view(ctx, task_id, output_format):
             click.echo(f"🔗 Commit: {task['commit_sha']}")
 
         if task.get("context"):
-            click.echo(f"🔍 Context:")
+            click.echo("🔍 Context:")
             if output_format == "pretty":
                 formatted_context = format_json_pretty(task["context"])
                 click.echo(formatted_context)
@@ -664,7 +665,7 @@ def view(ctx, task_id, output_format):
                 )
 
         if task.get("result"):
-            click.echo(f"📋 Result:")
+            click.echo("📋 Result:")
             if output_format == "pretty":
                 formatted_result = format_json_pretty(task["result"])
                 click.echo(formatted_result)
@@ -687,13 +688,13 @@ def view(ctx, task_id, output_format):
 @click.pass_context
 def remove(ctx, task_id):
     """Remove a task from the work queue"""
+    import yaml
 
     from .storage.work_queue import WorkQueue
-    import yaml
 
     try:
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         work_queue = WorkQueue(config["sugar"]["storage"]["database"])
@@ -718,12 +719,13 @@ def remove(ctx, task_id):
 @click.pass_context
 def hold(ctx, task_id, reason):
     """Put a task on hold"""
-    from .storage.work_queue import WorkQueue
     import yaml
+
+    from .storage.work_queue import WorkQueue
 
     try:
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         work_queue = WorkQueue(config["sugar"]["storage"]["database"])
@@ -752,12 +754,13 @@ def hold(ctx, task_id, reason):
 @click.pass_context
 def release(ctx, task_id):
     """Release a task from hold"""
-    from .storage.work_queue import WorkQueue
     import yaml
+
+    from .storage.work_queue import WorkQueue
 
     try:
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         work_queue = WorkQueue(config["sugar"]["storage"]["database"])
@@ -799,9 +802,9 @@ def release(ctx, task_id):
 @click.pass_context
 def update(ctx, task_id, title, description, priority, task_type, status):
     """Update an existing task"""
+    import yaml
 
     from .storage.work_queue import WorkQueue
-    import yaml
 
     if not any([title, description, priority, task_type, status]):
         click.echo("❌ No updates specified. Use --help to see available options.")
@@ -809,7 +812,7 @@ def update(ctx, task_id, title, description, priority, task_type, status):
 
     try:
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         work_queue = WorkQueue(config["sugar"]["storage"]["database"])
@@ -872,9 +875,9 @@ def update(ctx, task_id, title, description, priority, task_type, status):
 @click.pass_context
 def priority(ctx, task_id, priority, urgent, high, normal, low, minimal):
     """Change the priority of a task"""
+    import yaml
 
     from .storage.work_queue import WorkQueue
-    import yaml
 
     # Count how many priority options were specified
     priority_flags = [urgent, high, normal, low, minimal]
@@ -920,7 +923,7 @@ def priority(ctx, task_id, priority, urgent, high, normal, low, minimal):
 
     try:
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         work_queue = WorkQueue(
@@ -968,7 +971,7 @@ def priority(ctx, task_id, priority, urgent, high, normal, low, minimal):
                 click.echo(f"   Task: {current_task['title']}")
                 return True
             else:
-                click.echo(f"❌ Failed to update task priority")
+                click.echo("❌ Failed to update task priority")
                 return False
 
         import asyncio
@@ -997,7 +1000,7 @@ def logs(ctx, lines, follow, level):
 
     try:
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         log_file = (
@@ -1033,7 +1036,7 @@ def logs(ctx, lines, follow, level):
             click.echo("=" * 60)
 
             # Read last N lines
-            with open(log_path, "r") as f:
+            with open(log_path) as f:
                 log_lines = f.readlines()
 
             # Filter by level if specified
@@ -1053,12 +1056,13 @@ def logs(ctx, lines, follow, level):
 @click.pass_context
 def debug(ctx):
     """Show debugging information about last Claude execution"""
-    import yaml
     import os
+
+    import yaml
 
     try:
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         # Check if session state exists
@@ -1074,7 +1078,7 @@ def debug(ctx):
 
         # Show session state
         if Path(session_file).exists():
-            with open(session_file, "r") as f:
+            with open(session_file) as f:
                 session_state = json.load(f)
 
             click.echo("📋 Last Session State:")
@@ -1096,7 +1100,7 @@ def debug(ctx):
 
         # Show current context file
         if Path(context_file).exists():
-            with open(context_file, "r") as f:
+            with open(context_file) as f:
                 context = json.load(f)
 
             click.echo("📄 Current Context:")
@@ -1161,13 +1165,13 @@ def debug(ctx):
 @click.pass_context
 def status(ctx):
     """Show Sugar system status and queue statistics"""
+    import yaml
 
     from .storage.work_queue import WorkQueue
-    import yaml
 
     try:
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         work_queue = WorkQueue(config["sugar"]["storage"]["database"])
@@ -1204,7 +1208,6 @@ def status(ctx):
 @cli.command()
 def help():
     """Show comprehensive Sugar help and getting started guide"""
-
     click.echo(
         """
 🍰 Sugar - AI-Powered Autonomous Development System
@@ -1441,8 +1444,8 @@ async def run_continuous(sugar_loop):
     shutdown_event = asyncio.Event()
 
     # Create PID file for stop command
-    import pathlib
     import os
+    import pathlib
 
     config_dir = pathlib.Path(
         sugar_loop.config.get("sugar", {})
@@ -1534,8 +1537,8 @@ async def _update_task_async(work_queue, task_id, updates):
 
 def _detect_github_config(project_path: Path) -> dict:
     """Detect GitHub CLI availability and current repository configuration"""
-    import subprocess
     import os
+    import subprocess
 
     github_config = {
         "detected": True,  # Mark that detection was attempted
@@ -1737,7 +1740,7 @@ def _get_github_config_section(github_config: dict = None) -> str:
         # GitHub CLI detected, authenticated, and repo found
         return f"""
       enabled: true  # GitHub CLI detected and authenticated
-      repo: "{github_config['repo']}"  # Auto-detected from git remote
+      repo: "{github_config["repo"]}"  # Auto-detected from git remote
       
       # Authentication method: using GitHub CLI
       auth_method: "gh_cli"  # GitHub CLI is authenticated
@@ -1763,7 +1766,7 @@ def _get_github_config_section(github_config: dict = None) -> str:
 
         return f"""
       enabled: false  {auth_status}
-      repo: "{github_config.get('repo', '')}"  {repo_comment}
+      repo: "{github_config.get("repo", "")}"  {repo_comment}
       
       # Authentication method: GitHub CLI available but not authenticated
       auth_method: "gh_cli"  # GitHub CLI detected
@@ -1946,7 +1949,7 @@ def stop(ctx, force):
     import yaml
 
     try:
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
         # Use same path logic as PID file creation
         database_path = (
@@ -1966,7 +1969,7 @@ def stop(ctx, force):
         return
 
     try:
-        with open(pidfile, "r") as f:
+        with open(pidfile) as f:
             pid = int(f.read().strip())
 
         if force:
@@ -2035,16 +2038,17 @@ def debug(ctx, format, output, include_sensitive):
     This command outputs system state, configuration, and recent activity
     to help diagnose issues. Safe by default - excludes sensitive information.
     """
-    import yaml
+    import json
     import platform
     import subprocess
-    import json
-    from datetime import datetime, timedelta
+    from datetime import datetime
     from pathlib import Path
+
+    import yaml
 
     async def generate_diagnostic():
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         from .storage.work_queue import WorkQueue
@@ -2135,7 +2139,9 @@ def debug(ctx, format, output, include_sensitive):
                 "remotes": (
                     git_remote.stdout.strip().split("\n")
                     if git_remote.returncode == 0 and not include_sensitive
-                    else ["***REDACTED***"] if git_remote.returncode == 0 else []
+                    else ["***REDACTED***"]
+                    if git_remote.returncode == 0
+                    else []
                 ),
             }
         except Exception as e:
@@ -2277,12 +2283,12 @@ def debug(ctx, format, output, include_sensitive):
     else:  # text
         output_text = f"""
 Sugar Diagnostic Report
-Generated: {diagnostic_data['timestamp']}
+Generated: {diagnostic_data["timestamp"]}
 
 === SYSTEM INFO ===
-Sugar Version: {diagnostic_data['sugar_version']}
-Platform: {diagnostic_data['system_info']['platform']}
-Python: {diagnostic_data['system_info']['python_version']}
+Sugar Version: {diagnostic_data["sugar_version"]}
+Platform: {diagnostic_data["system_info"]["platform"]}
+Python: {diagnostic_data["system_info"]["python_version"]}
 
 === TOOL STATUS ===
 """
@@ -2291,10 +2297,10 @@ Python: {diagnostic_data['system_info']['python_version']}
 
         output_text += f"""
 === WORK QUEUE ===
-Total Items: {diagnostic_data['work_queue_status'].get('total_items', 'Error')}
-Status Breakdown: {diagnostic_data['work_queue_status'].get('status_breakdown', {})}
+Total Items: {diagnostic_data["work_queue_status"].get("total_items", "Error")}
+Status Breakdown: {diagnostic_data["work_queue_status"].get("status_breakdown", {})}
 
-=== POTENTIAL ISSUES ({len(diagnostic_data['potential_issues'])}) ===
+=== POTENTIAL ISSUES ({len(diagnostic_data["potential_issues"])}) ===
 """
         for issue in diagnostic_data["potential_issues"]:
             output_text += f"[{issue['severity'].upper()}] {issue['issue']}\n"
@@ -2320,12 +2326,13 @@ Status Breakdown: {diagnostic_data['work_queue_status'].get('status_breakdown', 
 def dedupe(ctx, dry_run):
     """Remove duplicate work items based on source_file"""
     import aiosqlite
-    from .storage.work_queue import WorkQueue
     import yaml
+
+    from .storage.work_queue import WorkQueue
 
     async def _dedupe_work():
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         work_queue = WorkQueue(config["sugar"]["storage"]["database"])
@@ -2396,13 +2403,12 @@ def dedupe(ctx, dry_run):
 def cleanup(ctx, dry_run):
     """Remove bogus work items (Sugar initialization tests, venv files, etc.)"""
     import aiosqlite
-    from .storage.work_queue import WorkQueue
     import yaml
 
     async def _cleanup_bogus_work():
         # Load configuration
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         # Connect to database
@@ -2456,7 +2462,9 @@ def cleanup(ctx, dry_run):
                 status_icon = (
                     "⚡"
                     if status == "active"
-                    else "✅" if status == "completed" else "⏳"
+                    else "✅"
+                    if status == "completed"
+                    else "⏳"
                 )
                 click.echo(f"{status_icon} {work_id[:8]}... - {title}")
                 if source_file:
@@ -2518,12 +2526,13 @@ def task_type(ctx):
 def list_task_types(ctx, format):
     """List all task types"""
     import yaml
+
     from .storage.task_type_manager import TaskTypeManager
 
     async def _list_task_types():
         # Load configuration
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         # Initialize TaskTypeManager
@@ -2575,12 +2584,13 @@ def list_task_types(ctx, format):
 def add_task_type(ctx, type_id, name, description, agent, commit_template, emoji):
     """Add a new task type"""
     import yaml
+
     from .storage.task_type_manager import TaskTypeManager
 
     async def _add_task_type():
         # Load configuration
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         # Initialize TaskTypeManager
@@ -2621,12 +2631,13 @@ def add_task_type(ctx, type_id, name, description, agent, commit_template, emoji
 def edit_task_type(ctx, type_id, name, description, agent, commit_template, emoji):
     """Edit an existing task type"""
     import yaml
+
     from .storage.task_type_manager import TaskTypeManager
 
     async def _edit_task_type():
         # Load configuration
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         # Initialize TaskTypeManager
@@ -2659,12 +2670,13 @@ def edit_task_type(ctx, type_id, name, description, agent, commit_template, emoj
 def remove_task_type(ctx, type_id, force):
     """Remove a custom task type (cannot remove defaults)"""
     import yaml
+
     from .storage.task_type_manager import TaskTypeManager
 
     async def _remove_task_type():
         # Load configuration
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         # Initialize TaskTypeManager
@@ -2710,12 +2722,13 @@ def remove_task_type(ctx, type_id, force):
 def show_task_type(ctx, type_id):
     """Show details of a specific task type"""
     import yaml
+
     from .storage.task_type_manager import TaskTypeManager
 
     async def _show_task_type():
         # Load configuration
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         # Initialize TaskTypeManager
@@ -2758,12 +2771,13 @@ def show_task_type(ctx, type_id):
 def export_task_types(ctx, file):
     """Export custom task types to JSON for version control"""
     import yaml
+
     from .storage.task_type_manager import TaskTypeManager
 
     async def _export_task_types():
         # Load configuration
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         # Initialize TaskTypeManager
@@ -2801,12 +2815,13 @@ def export_task_types(ctx, file):
 def import_task_types(ctx, file, overwrite):
     """Import task types from JSON file"""
     import yaml
+
     from .storage.task_type_manager import TaskTypeManager
 
     async def _import_task_types():
         # Load configuration
         config_file = ctx.obj["config"]
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             config = yaml.safe_load(f)
 
         # Initialize TaskTypeManager

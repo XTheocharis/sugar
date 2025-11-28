@@ -2,14 +2,13 @@
 Error Log Monitor - Discover work by analyzing error logs and feedback
 """
 
-import asyncio
+import glob
 import json
 import logging
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict, Any
-import glob
-import os
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,7 @@ class ErrorLogMonitor:
         self.processed_files = set()  # Track processed files to avoid duplicates
         self.work_queue = None  # Will be set by the main loop
 
-    async def discover(self) -> List[Dict[str, Any]]:
+    async def discover(self) -> list[dict[str, Any]]:
         """Discover work items from error logs"""
         work_items = []
 
@@ -74,7 +73,7 @@ class ErrorLogMonitor:
             logger.error(f"Error checking file age for {file_path}: {e}")
             return False
 
-    async def _process_log_file(self, file_path: str) -> List[Dict[str, Any]]:
+    async def _process_log_file(self, file_path: str) -> list[dict[str, Any]]:
         """Process a single log file and extract work items"""
         work_items = []
 
@@ -88,12 +87,12 @@ class ErrorLogMonitor:
 
         return work_items
 
-    async def _process_json_log(self, file_path: str) -> List[Dict[str, Any]]:
+    async def _process_json_log(self, file_path: str) -> list[dict[str, Any]]:
         """Process JSON log files (like feedback logs)"""
         work_items = []
 
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 log_data = json.load(f)
 
             # Handle different JSON log formats
@@ -116,9 +115,8 @@ class ErrorLogMonitor:
 
     def _create_work_item_from_json(
         self, log_entry: dict, source_file: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create a work item from a JSON log entry"""
-
         # Look for error indicators
         error_indicators = ["error", "exception", "failed", "bug", "issue"]
         feedback_indicators = ["feedback", "improvement", "suggestion", "request"]
@@ -211,12 +209,12 @@ class ErrorLogMonitor:
 
         return "\n\n".join(description_parts) if description_parts else ""
 
-    async def _process_text_log(self, file_path: str) -> List[Dict[str, Any]]:
+    async def _process_text_log(self, file_path: str) -> list[dict[str, Any]]:
         """Process plain text log files"""
         work_items = []
 
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 content = f.read()
 
             # Look for error patterns in text logs
@@ -275,8 +273,8 @@ class ErrorLogMonitor:
         return work_items
 
     def _create_work_item_from_text(
-        self, error_lines: List[str], source_file: str
-    ) -> Dict[str, Any]:
+        self, error_lines: list[str], source_file: str
+    ) -> dict[str, Any]:
         """Create work item from text log error lines"""
         if not error_lines:
             return None
@@ -329,7 +327,7 @@ class ErrorLogMonitor:
 
         return active_files
 
-    async def _generate_maintenance_tasks(self) -> List[Dict[str, Any]]:
+    async def _generate_maintenance_tasks(self) -> list[dict[str, Any]]:
         """Generate simple maintenance tasks when no work is found"""
         maintenance_tasks = []
 

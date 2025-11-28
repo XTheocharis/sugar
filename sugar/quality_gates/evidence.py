@@ -9,10 +9,10 @@ Collects and stores proof for all quality gate verifications:
 """
 
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +23,9 @@ class Evidence:
     def __init__(
         self,
         evidence_type: str,
-        data: Dict[str, Any],
+        data: dict[str, Any],
         verified: bool,
-        timestamp: Optional[str] = None,
+        timestamp: str | None = None,
     ):
         self.type = evidence_type
         self.data = data
@@ -54,11 +54,12 @@ class EvidenceCollector:
         Args:
             task_id: Unique task identifier
             evidence_dir: Directory to store evidence
+
         """
         self.task_id = task_id
         self.evidence_dir = Path(evidence_dir)
         self.evidence_dir.mkdir(parents=True, exist_ok=True)
-        self.evidence_items: List[Evidence] = []
+        self.evidence_items: list[Evidence] = []
 
     def add_test_evidence(
         self,
@@ -86,6 +87,7 @@ class EvidenceCollector:
 
         Returns:
             Evidence object
+
         """
         verified = exit_code == 0 and failures == 0 and errors == 0
 
@@ -111,7 +113,7 @@ class EvidenceCollector:
         return evidence
 
     def add_functional_verification_evidence(
-        self, verification_type: str, details: Dict[str, Any], verified: bool
+        self, verification_type: str, details: dict[str, Any], verified: bool
     ) -> Evidence:
         """
         Add functional verification evidence
@@ -123,6 +125,7 @@ class EvidenceCollector:
 
         Returns:
             Evidence object
+
         """
         evidence = Evidence(
             evidence_type="functional_verification",
@@ -151,6 +154,7 @@ class EvidenceCollector:
 
         Returns:
             Evidence object
+
         """
         verified = expected == actual
 
@@ -185,6 +189,7 @@ class EvidenceCollector:
 
         Returns:
             Evidence object
+
         """
         evidence = Evidence(
             evidence_type="screenshot",
@@ -204,18 +209,20 @@ class EvidenceCollector:
 
         Returns:
             True if all evidence passed verification
+
         """
         if not self.evidence_items:
             return False
 
         return all(evidence.verified for evidence in self.evidence_items)
 
-    def get_evidence_summary(self) -> Dict[str, Any]:
+    def get_evidence_summary(self) -> dict[str, Any]:
         """
         Get summary of all evidence
 
         Returns:
             Dictionary with evidence summary
+
         """
         total = len(self.evidence_items)
         verified = sum(1 for e in self.evidence_items if e.verified)
@@ -242,6 +249,7 @@ class EvidenceCollector:
 
         Returns:
             Path to saved report
+
         """
         report_path = self.evidence_dir / f"{self.task_id}_evidence.json"
 
@@ -258,21 +266,23 @@ class EvidenceCollector:
         logger.info(f"Saved evidence report: {report_path}")
         return str(report_path)
 
-    def get_failed_evidence(self) -> List[Evidence]:
+    def get_failed_evidence(self) -> list[Evidence]:
         """
         Get all evidence items that failed verification
 
         Returns:
             List of failed evidence items
+
         """
         return [e for e in self.evidence_items if not e.verified]
 
-    def generate_evidence_urls(self) -> List[str]:
+    def generate_evidence_urls(self) -> list[str]:
         """
         Generate list of file paths containing evidence
 
         Returns:
             List of evidence file paths
+
         """
         urls = []
 

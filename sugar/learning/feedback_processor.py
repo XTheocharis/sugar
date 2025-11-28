@@ -2,14 +2,12 @@
 Feedback Processor - Learn from execution results and adapt behavior
 """
 
-import asyncio
 import json
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple
-from collections import defaultdict
 import statistics
-import re
+from collections import defaultdict
+from datetime import datetime
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +19,8 @@ class FeedbackProcessor:
         self.work_queue = work_queue
         self.learning_cache = {}  # Cache insights to avoid recomputation
 
-    async def process_feedback(self) -> Dict[str, Any]:
+    async def process_feedback(self) -> dict[str, Any]:
         """Process all execution feedback and generate insights"""
-
         try:
             # Get recent completed and failed tasks
             completed_tasks = await self.work_queue.get_recent_work(
@@ -70,8 +67,8 @@ class FeedbackProcessor:
             return {}
 
     async def _analyze_success_patterns(
-        self, completed_tasks: List[Dict]
-    ) -> Dict[str, Any]:
+        self, completed_tasks: list[dict]
+    ) -> dict[str, Any]:
         """Analyze patterns in successful task executions"""
         if not completed_tasks:
             return {}
@@ -107,8 +104,8 @@ class FeedbackProcessor:
         return patterns
 
     async def _analyze_failure_patterns(
-        self, failed_tasks: List[Dict]
-    ) -> Dict[str, Any]:
+        self, failed_tasks: list[dict]
+    ) -> dict[str, Any]:
         """Analyze patterns in failed task executions"""
         if not failed_tasks:
             return {}
@@ -140,8 +137,8 @@ class FeedbackProcessor:
         return patterns
 
     async def _calculate_performance_metrics(
-        self, completed_tasks: List[Dict], failed_tasks: List[Dict]
-    ) -> Dict[str, Any]:
+        self, completed_tasks: list[dict], failed_tasks: list[dict]
+    ) -> dict[str, Any]:
         """Calculate overall system performance metrics"""
         total_tasks = len(completed_tasks) + len(failed_tasks)
 
@@ -205,8 +202,8 @@ class FeedbackProcessor:
         }
 
     async def _analyze_priority_effectiveness(
-        self, completed_tasks: List[Dict]
-    ) -> Dict[str, Any]:
+        self, completed_tasks: list[dict]
+    ) -> dict[str, Any]:
         """Analyze how well the priority system is working"""
         if not completed_tasks:
             return {}
@@ -247,8 +244,8 @@ class FeedbackProcessor:
         return effectiveness
 
     async def _analyze_discovery_effectiveness(
-        self, completed_tasks: List[Dict]
-    ) -> Dict[str, Any]:
+        self, completed_tasks: list[dict]
+    ) -> dict[str, Any]:
         """Analyze which discovery sources produce the most valuable work"""
         if not completed_tasks:
             return {}
@@ -291,8 +288,8 @@ class FeedbackProcessor:
         return source_effectiveness
 
     async def _analyze_execution_times(
-        self, completed_tasks: List[Dict]
-    ) -> Dict[str, Any]:
+        self, completed_tasks: list[dict]
+    ) -> dict[str, Any]:
         """Analyze execution time patterns by task characteristics"""
         if not completed_tasks:
             return {}
@@ -327,8 +324,8 @@ class FeedbackProcessor:
         return analyzed_patterns
 
     async def _generate_recommendations(
-        self, completed_tasks: List[Dict], failed_tasks: List[Dict]
-    ) -> List[Dict[str, Any]]:
+        self, completed_tasks: list[dict], failed_tasks: list[dict]
+    ) -> list[dict[str, Any]]:
         """Generate actionable recommendations based on learning"""
         recommendations = []
 
@@ -413,7 +410,7 @@ class FeedbackProcessor:
 
         return recommendations
 
-    async def _extract_success_indicators(self, result: Any) -> List[str]:
+    async def _extract_success_indicators(self, result: Any) -> list[str]:
         """Extract indicators of successful execution from task results"""
         indicators = []
 
@@ -445,7 +442,7 @@ class FeedbackProcessor:
 
         return indicators
 
-    async def _extract_execution_time(self, result: Any) -> Optional[float]:
+    async def _extract_execution_time(self, result: Any) -> float | None:
         """Extract execution time from task result"""
         try:
             if isinstance(result, str):
@@ -492,9 +489,8 @@ class FeedbackProcessor:
 
         return "unknown_error"
 
-    async def get_adaptive_recommendations(self) -> Dict[str, Any]:
+    async def get_adaptive_recommendations(self) -> dict[str, Any]:
         """Get recommendations for adapting system behavior"""
-
         if "last_insights" not in self.learning_cache:
             return {}
 
@@ -519,9 +515,9 @@ class FeedbackProcessor:
                 adaptations["priority_adjustments"]["increase_complexity"] = True
             elif rec_type == "discovery_optimization":
                 if "error_monitor" in action:
-                    adaptations["discovery_adjustments"][
-                        "boost_error_monitoring"
-                    ] = True
+                    adaptations["discovery_adjustments"]["boost_error_monitoring"] = (
+                        True
+                    )
                 elif "code_quality" in action:
                     adaptations["discovery_adjustments"]["boost_code_quality"] = True
             elif rec_type == "failure_prevention":
@@ -530,7 +526,7 @@ class FeedbackProcessor:
 
         return adaptations
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Return health status of feedback processor"""
         return {
             "learning_cache_size": len(self.learning_cache),

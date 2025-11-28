@@ -2,10 +2,9 @@
 Adaptive Scheduler - Adjust system behavior based on learning insights
 """
 
-import asyncio
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, Any, List
+from typing import Any
+
 from .feedback_processor import FeedbackProcessor
 
 logger = logging.getLogger(__name__)
@@ -19,9 +18,8 @@ class AdaptiveScheduler:
         self.feedback_processor = feedback_processor
         self.adaptations = {}
 
-    async def adapt_system_behavior(self) -> Dict[str, Any]:
+    async def adapt_system_behavior(self) -> dict[str, Any]:
         """Adapt system behavior based on learning insights"""
-
         try:
             # Get adaptive recommendations
             recommendations = (
@@ -39,8 +37,8 @@ class AdaptiveScheduler:
             return {}
 
     async def _apply_adaptations(
-        self, recommendations: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, recommendations: dict[str, Any]
+    ) -> dict[str, Any]:
         """Apply specific adaptations based on recommendations"""
         applied = {}
 
@@ -68,8 +66,8 @@ class AdaptiveScheduler:
         return applied
 
     async def _adapt_priority_system(
-        self, adjustments: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, adjustments: dict[str, Any]
+    ) -> dict[str, Any]:
         """Adapt priority system based on learning"""
         changes = {}
 
@@ -90,8 +88,8 @@ class AdaptiveScheduler:
         return changes
 
     async def _adapt_discovery_behavior(
-        self, adjustments: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, adjustments: dict[str, Any]
+    ) -> dict[str, Any]:
         """Adapt discovery module behavior"""
         changes = {}
 
@@ -106,8 +104,8 @@ class AdaptiveScheduler:
         return changes
 
     async def _adapt_execution_parameters(
-        self, adjustments: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, adjustments: dict[str, Any]
+    ) -> dict[str, Any]:
         """Adapt execution parameters"""
         changes = {}
 
@@ -118,10 +116,9 @@ class AdaptiveScheduler:
         return changes
 
     async def get_optimized_work_order(
-        self, available_work: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        self, available_work: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Optimize work order based on learning insights"""
-
         if not available_work:
             return []
 
@@ -141,10 +138,9 @@ class AdaptiveScheduler:
             return available_work  # Return original order on error
 
     async def _apply_learned_ordering(
-        self, work: List[Dict[str, Any]], insights: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, work: list[dict[str, Any]], insights: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """Apply learned patterns to optimize work ordering"""
-
         # Get effectiveness metrics
         source_effectiveness = insights.get("discovery_source_effectiveness", {})
         priority_effectiveness = insights.get("priority_effectiveness", {})

@@ -5,10 +5,10 @@ Provides unified request/response format for both basic Claude and agent mode in
 """
 
 import json
-from typing import Dict, Any, Optional, List, Union
+from dataclasses import asdict, dataclass
 from datetime import datetime
-from dataclasses import dataclass, asdict
 from enum import Enum
+from typing import Any, Optional
 
 
 class ExecutionMode(Enum):
@@ -41,7 +41,7 @@ class AgentType(Enum):
         return DynamicAgentType(agent_name)
 
     @classmethod
-    def get_available_agents(cls) -> List[str]:
+    def get_available_agents(cls) -> list[str]:
         """Get list of all available agent names"""
         return [agent.value for agent in cls]
 
@@ -77,10 +77,10 @@ class TaskContext:
     source_type: str
     priority: int
     attempts: int
-    files_involved: Optional[List[str]] = None
-    repository_info: Optional[Dict[str, Any]] = None
-    previous_attempts: Optional[List[Dict[str, Any]]] = None
-    session_context: Optional[Dict[str, Any]] = None
+    files_involved: list[str] | None = None
+    repository_info: dict[str, Any] | None = None
+    previous_attempts: list[dict[str, Any]] | None = None
+    session_context: dict[str, Any] | None = None
 
 
 @dataclass
@@ -94,18 +94,18 @@ class StructuredRequest:
 
     # Execution configuration
     execution_mode: ExecutionMode
-    agent_type: Optional[Union[AgentType, DynamicAgentType]] = None
+    agent_type: AgentType | DynamicAgentType | None = None
     agent_fallback: bool = True
 
     # Context and metadata
-    context: Optional[TaskContext] = None
-    timestamp: Optional[str] = None
-    sugar_version: Optional[str] = None
+    context: TaskContext | None = None
+    timestamp: str | None = None
+    sugar_version: str | None = None
 
     # Claude-specific options
     continue_session: bool = False
     timeout_seconds: int = 1800
-    working_directory: Optional[str] = None
+    working_directory: str | None = None
 
     def __post_init__(self):
         """Set defaults after initialization"""
@@ -127,7 +127,7 @@ class StructuredRequest:
     @classmethod
     def from_work_item(
         cls,
-        work_item: Dict[str, Any],
+        work_item: dict[str, Any],
         execution_mode: ExecutionMode = ExecutionMode.BASIC,
     ) -> "StructuredRequest":
         """Create structured request from Sugar work item"""
@@ -153,7 +153,7 @@ class StructuredRequest:
         )
 
     @staticmethod
-    def _extract_files_from_context(context: Dict[str, Any]) -> Optional[List[str]]:
+    def _extract_files_from_context(context: dict[str, Any]) -> list[str] | None:
         """Extract file paths from work item context"""
         files = []
 
@@ -177,15 +177,15 @@ class StructuredResponse:
     # Execution results
     success: bool
     execution_time: float
-    agent_used: Optional[str] = None
+    agent_used: str | None = None
     fallback_occurred: bool = False
 
     # Task results
     stdout: str = ""
     stderr: str = ""
     return_code: int = 0
-    files_modified: List[str] = None
-    actions_taken: List[str] = None
+    files_modified: list[str] = None
+    actions_taken: list[str] = None
 
     # Context and continuation
     summary: str = ""
@@ -193,16 +193,16 @@ class StructuredResponse:
     session_updated: bool = False
 
     # Error handling
-    error_message: Optional[str] = None
-    error_type: Optional[str] = None
+    error_message: str | None = None
+    error_type: str | None = None
 
     # Quality metrics
-    response_quality_score: Optional[float] = None  # 0.0 to 1.0 quality rating
-    confidence_level: Optional[str] = None  # high, medium, low
+    response_quality_score: float | None = None  # 0.0 to 1.0 quality rating
+    confidence_level: str | None = None  # high, medium, low
 
     # Metadata
-    timestamp: Optional[str] = None
-    claude_version: Optional[str] = None
+    timestamp: str | None = None
+    claude_version: str | None = None
 
     def __post_init__(self):
         """Set defaults after initialization"""
@@ -215,7 +215,7 @@ class StructuredResponse:
         if self.actions_taken is None:
             self.actions_taken = []
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for work queue storage"""
         return asdict(self)
 
@@ -226,7 +226,7 @@ class StructuredResponse:
         stderr: str,
         return_code: int,
         execution_time: float,
-        agent_used: Optional[str] = None,
+        agent_used: str | None = None,
     ) -> "StructuredResponse":
         """Create structured response from raw Claude output with enhanced parsing"""
         success = return_code == 0 and not stderr.strip()
@@ -295,7 +295,7 @@ class StructuredResponse:
         return stdout[:200] + "..." if len(stdout) > 200 else stdout
 
     @staticmethod
-    def _extract_actions_from_output(stdout: str) -> List[str]:
+    def _extract_actions_from_output(stdout: str) -> list[str]:
         """Extract action items from Claude's text output"""
         actions = []
         lines = stdout.strip().split("\n")
@@ -316,7 +316,7 @@ class StructuredResponse:
         return actions[:10]  # Limit to first 10 actions
 
     @staticmethod
-    def _extract_enhanced_summary(stdout: str, agent_used: Optional[str] = None) -> str:
+    def _extract_enhanced_summary(stdout: str, agent_used: str | None = None) -> str:
         """Extract enhanced summary with agent-specific parsing"""
         if not stdout:
             return ""
@@ -385,8 +385,8 @@ class StructuredResponse:
 
     @staticmethod
     def _extract_enhanced_actions(
-        stdout: str, agent_used: Optional[str] = None
-    ) -> List[str]:
+        stdout: str, agent_used: str | None = None
+    ) -> list[str]:
         """Extract enhanced actions with agent-specific patterns"""
         if not stdout:
             return []
@@ -462,7 +462,7 @@ class StructuredResponse:
         return list(dict.fromkeys(actions))[:12]  # Keep top 12 unique actions
 
     @staticmethod
-    def _extract_files_from_output(stdout: str) -> List[str]:
+    def _extract_files_from_output(stdout: str) -> list[str]:
         """Extract modified files from Claude output with enhanced detection"""
         if not stdout:
             return []
@@ -569,7 +569,7 @@ class StructuredResponse:
         stdout: str,
         stderr: str,
         return_code: int,
-        agent_used: Optional[str] = None,
+        agent_used: str | None = None,
         execution_time: float = 0,
     ) -> tuple[float, str]:
         """Assess the quality of Claude's response and assign confidence level"""
@@ -703,13 +703,13 @@ class RequestBuilder:
     """Helper class for building structured requests"""
 
     @staticmethod
-    def create_basic_request(work_item: Dict[str, Any]) -> StructuredRequest:
+    def create_basic_request(work_item: dict[str, Any]) -> StructuredRequest:
         """Create a basic (non-agent) structured request"""
         return StructuredRequest.from_work_item(work_item, ExecutionMode.BASIC)
 
     @staticmethod
     def create_agent_request(
-        work_item: Dict[str, Any], agent_type: Union[AgentType, DynamicAgentType, str]
+        work_item: dict[str, Any], agent_type: AgentType | DynamicAgentType | str
     ) -> StructuredRequest:
         """Create an agent mode structured request"""
         request = StructuredRequest.from_work_item(work_item, ExecutionMode.AGENT)
@@ -724,7 +724,7 @@ class RequestBuilder:
 
     @staticmethod
     def create_continuation_request(
-        work_item: Dict[str, Any], previous_response: StructuredResponse
+        work_item: dict[str, Any], previous_response: StructuredResponse
     ) -> StructuredRequest:
         """Create a continuation request based on previous response"""
         request = StructuredRequest.from_work_item(

@@ -148,17 +148,17 @@ class TestCommandStructure:
         """Verify all commands document usage"""
         for command_file in commands_dir.glob("*.md"):
             content = command_file.read_text(encoding="utf-8")
-            assert (
-                "usage:" in content.lower() or "## usage" in content.lower()
-            ), f"{command_file.name} missing usage documentation"
+            assert "usage:" in content.lower() or "## usage" in content.lower(), (
+                f"{command_file.name} missing usage documentation"
+            )
 
     def test_all_commands_have_examples(self, commands_dir):
         """Verify all commands include examples"""
         for command_file in commands_dir.glob("*.md"):
             content = command_file.read_text(encoding="utf-8")
-            assert (
-                "examples:" in content.lower() or "## example" in content.lower()
-            ), f"{command_file.name} missing examples"
+            assert "examples:" in content.lower() or "## example" in content.lower(), (
+                f"{command_file.name} missing examples"
+            )
 
 
 class TestAgentStructure:
@@ -213,14 +213,14 @@ class TestHooksConfiguration:
         ]
 
         for hook in hooks_config["hooks"]:
-            assert (
-                hook["event"] in valid_events
-            ), f"Hook {hook['name']} has invalid event: {hook['event']}"
+            assert hook["event"] in valid_events, (
+                f"Hook {hook['name']} has invalid event: {hook['event']}"
+            )
 
     def test_hooks_have_descriptions(self, hooks_config):
         """Verify hooks have descriptions"""
         for hook in hooks_config["hooks"]:
             assert "description" in hook, f"Hook {hook['name']} missing description"
-            assert (
-                len(hook["description"]) > 10
-            ), f"Hook {hook['name']} has too short description"
+            assert len(hook["description"]) > 10, (
+                f"Hook {hook['name']} has too short description"
+            )

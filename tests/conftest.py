@@ -2,15 +2,16 @@
 Pytest configuration and fixtures for Sugar tests
 """
 
+import asyncio
+import json
+import shutil
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
+
 import pytest
 import pytest_asyncio
-import tempfile
-import shutil
-from pathlib import Path
-from unittest.mock import Mock, patch
-import asyncio
 import yaml
-import json
 from click.testing import CliRunner
 
 

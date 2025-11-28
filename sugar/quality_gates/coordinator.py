@@ -5,19 +5,17 @@ Coordinates test validation, success criteria verification, and truth enforcemen
 before allowing task completion.
 """
 
-import asyncio
 import logging
-from typing import Any, Dict, List, Optional, Tuple
-from pathlib import Path
+from typing import Any
 
-from .test_validator import TestExecutionValidator, TestExecutionResult
-from .success_criteria import SuccessCriteriaVerifier, SuccessCriterion
-from .truth_enforcer import TruthEnforcer
+from .diff_validator import DiffValidator
 from .evidence import EvidenceCollector
+from .failure_handler import VerificationFailureHandler
 from .functional_verifier import FunctionalVerifier
 from .preflight_checks import PreFlightChecker
-from .failure_handler import VerificationFailureHandler
-from .diff_validator import DiffValidator
+from .success_criteria import SuccessCriteriaVerifier
+from .test_validator import TestExecutionValidator
+from .truth_enforcer import TruthEnforcer
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +33,8 @@ class QualityGateResult:
         preflight_passed: bool = True,
         functional_verified: bool = True,
         diff_validated: bool = True,
-        evidence_collector: Optional[EvidenceCollector] = None,
-        failure_report: Optional[Any] = None,
+        evidence_collector: EvidenceCollector | None = None,
+        failure_report: Any | None = None,
     ):
         self.can_complete = can_complete
         self.reason = reason
@@ -87,6 +85,7 @@ class QualityGatesCoordinator:
 
         Args:
             config: Full Sugar configuration dictionary
+
         """
         self.config = config
         self.gates_config = config.get("quality_gates", {})
@@ -111,10 +110,10 @@ class QualityGatesCoordinator:
 
     async def validate_before_commit(
         self,
-        task: Dict[str, Any],
-        changed_files: List[str],
-        claims: List[str] = None,
-    ) -> Tuple[bool, QualityGateResult]:
+        task: dict[str, Any],
+        changed_files: list[str],
+        claims: list[str] = None,
+    ) -> tuple[bool, QualityGateResult]:
         """
         Run all quality gate validations before allowing a git commit
 
@@ -125,6 +124,7 @@ class QualityGatesCoordinator:
 
         Returns:
             Tuple of (can_commit, quality_gate_result)
+
         """
         if not self.is_enabled():
             logger.debug("Quality gates disabled - allowing commit")
@@ -144,10 +144,12 @@ class QualityGatesCoordinator:
 
         if self.test_validator.is_enabled():
             logger.info("📝 Phase 1: Validating test execution")
-            can_commit, test_result, message = (
-                await self.test_validator.validate_tests_before_commit(
-                    task, changed_files
-                )
+            (
+                can_commit,
+                test_result,
+                message,
+            ) = await self.test_validator.validate_tests_before_commit(
+                task, changed_files
             )
 
             if test_result:
@@ -182,9 +184,10 @@ class QualityGatesCoordinator:
 
         if success_criteria and self.criteria_verifier:
             logger.info("📋 Phase 2: Verifying success criteria")
-            all_verified, verified_criteria = (
-                await self.criteria_verifier.verify_all_criteria(success_criteria)
-            )
+            (
+                all_verified,
+                verified_criteria,
+            ) = await self.criteria_verifier.verify_all_criteria(success_criteria)
 
             # Store success criteria evidence
             for criterion in verified_criteria:
@@ -242,7 +245,7 @@ class QualityGatesCoordinator:
                     evidence_collector=evidence_collector,
                 )
 
-            logger.info(f"✅ Phase 3 passed: All claims proven with evidence")
+            logger.info("✅ Phase 3 passed: All claims proven with evidence")
 
         # Save evidence report
         evidence_path = evidence_collector.save_evidence_report()
@@ -268,6 +271,7 @@ class QualityGatesCoordinator:
 
         Returns:
             String to append to commit message
+
         """
         if not quality_gate_result.evidence_collector:
             return ""
@@ -282,7 +286,7 @@ class QualityGatesCoordinator:
 
         evidence_urls = quality_gate_result.evidence_collector.generate_evidence_urls()
         if evidence_urls:
-            footer += f"\nEvidence:\n"
+            footer += "\nEvidence:\n"
             for url in evidence_urls[:3]:  # First 3 URLs
                 footer += f"- {url}\n"
 

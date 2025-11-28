@@ -6,10 +6,9 @@ Tasks cannot complete until all success criteria are verified.
 """
 
 import asyncio
-import subprocess
-from typing import Any, Dict, List, Optional, Tuple
 import logging
 import re
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +20,7 @@ class SuccessCriterion:
         self,
         criterion_type: str,
         expected: Any,
-        actual: Optional[Any] = None,
+        actual: Any | None = None,
         verified: bool = False,
         **kwargs,
     ):
@@ -53,13 +52,14 @@ class SuccessCriteriaVerifier:
 
         Args:
             config: Configuration dictionary
+
         """
         self.config = config
         self.block_completion = True  # Always block until verified
 
     async def verify_all_criteria(
-        self, criteria: List[Dict[str, Any]]
-    ) -> Tuple[bool, List[SuccessCriterion]]:
+        self, criteria: list[dict[str, Any]]
+    ) -> tuple[bool, list[SuccessCriterion]]:
         """
         Verify all success criteria for a task
 
@@ -68,6 +68,7 @@ class SuccessCriteriaVerifier:
 
         Returns:
             Tuple of (all_verified, list of verified criteria)
+
         """
         if not criteria:
             logger.warning("No success criteria defined for task")
@@ -90,7 +91,7 @@ class SuccessCriteriaVerifier:
         return all_verified, verified_criteria
 
     async def _verify_criterion(
-        self, criterion_def: Dict[str, Any]
+        self, criterion_def: dict[str, Any]
     ) -> SuccessCriterion:
         """
         Verify a single success criterion
@@ -100,6 +101,7 @@ class SuccessCriteriaVerifier:
 
         Returns:
             SuccessCriterion with verification result
+
         """
         criterion_type = criterion_def.get("type")
 
@@ -132,7 +134,7 @@ class SuccessCriteriaVerifier:
             )
 
     async def _verify_http_status(
-        self, criterion_def: Dict[str, Any]
+        self, criterion_def: dict[str, Any]
     ) -> SuccessCriterion:
         """Verify HTTP status code"""
         url = criterion_def.get("url")
@@ -177,7 +179,7 @@ class SuccessCriteriaVerifier:
             )
 
     async def _verify_http_no_redirect(
-        self, criterion_def: Dict[str, Any]
+        self, criterion_def: dict[str, Any]
     ) -> SuccessCriterion:
         """Verify that URL does not redirect"""
         url = criterion_def.get("url")
@@ -225,7 +227,7 @@ class SuccessCriteriaVerifier:
             )
 
     async def _verify_test_suite(
-        self, criterion_def: Dict[str, Any]
+        self, criterion_def: dict[str, Any]
     ) -> SuccessCriterion:
         """Verify test suite passes"""
         command = criterion_def.get("command")
@@ -272,7 +274,7 @@ class SuccessCriteriaVerifier:
                 error=str(e),
             )
 
-    def _parse_test_failures(self, output: str) -> Tuple[int, int]:
+    def _parse_test_failures(self, output: str) -> tuple[int, int]:
         """Parse test output for failures and errors"""
         failures = 0
         errors = 0
@@ -295,7 +297,7 @@ class SuccessCriteriaVerifier:
         return failures, errors
 
     async def _verify_browser_element(
-        self, criterion_def: Dict[str, Any]
+        self, criterion_def: dict[str, Any]
     ) -> SuccessCriterion:
         """
         Verify browser element exists (placeholder for MCP integration)
@@ -319,7 +321,7 @@ class SuccessCriteriaVerifier:
         )
 
     async def _verify_file_exists(
-        self, criterion_def: Dict[str, Any]
+        self, criterion_def: dict[str, Any]
     ) -> SuccessCriterion:
         """Verify file exists"""
         from pathlib import Path
@@ -351,7 +353,7 @@ class SuccessCriteriaVerifier:
             )
 
     async def _verify_string_in_file(
-        self, criterion_def: Dict[str, Any]
+        self, criterion_def: dict[str, Any]
     ) -> SuccessCriterion:
         """Verify string exists in file"""
         from pathlib import Path

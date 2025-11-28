@@ -21,19 +21,19 @@ Phase 3 (Implemented):
 """
 
 # Phase 1 exports
-from .test_validator import TestExecutionValidator, TestExecutionResult
-from .success_criteria import SuccessCriteriaVerifier, SuccessCriterion
-from .truth_enforcer import TruthEnforcer
-from .evidence import EvidenceCollector, Evidence
-from .coordinator import QualityGatesCoordinator, QualityGateResult
-
-# Phase 2 exports
-from .functional_verifier import FunctionalVerifier, FunctionalVerificationResult
-from .preflight_checks import PreFlightChecker, PreFlightCheckResult
+from .coordinator import QualityGateResult, QualityGatesCoordinator
+from .diff_validator import DiffValidationResult, DiffValidator
+from .evidence import Evidence, EvidenceCollector
 
 # Phase 3 exports
-from .failure_handler import VerificationFailureHandler, FailureReport
-from .diff_validator import DiffValidator, DiffValidationResult
+from .failure_handler import FailureReport, VerificationFailureHandler
+
+# Phase 2 exports
+from .functional_verifier import FunctionalVerificationResult, FunctionalVerifier
+from .preflight_checks import PreFlightChecker, PreFlightCheckResult
+from .success_criteria import SuccessCriteriaVerifier, SuccessCriterion
+from .test_validator import TestExecutionResult, TestExecutionValidator
+from .truth_enforcer import TruthEnforcer
 
 __all__ = [
     # Phase 1

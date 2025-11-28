@@ -2,11 +2,11 @@
 Tests for Sugar core loop functionality
 """
 
-import pytest
 import asyncio
+from unittest.mock import AsyncMock, patch
+
+import pytest
 import yaml
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from sugar.core.loop import SugarLoop
 
@@ -45,7 +45,6 @@ class TestSugarLoop:
             patch("sugar.core.loop.CodeQualityScanner"),
             patch("sugar.core.loop.TestCoverageAnalyzer"),
         ):
-
             loop = SugarLoop(str(config_path))
             assert loop.config == config_data
             assert not loop.running
@@ -89,7 +88,6 @@ class TestSugarLoop:
             patch("sugar.core.loop.ClaudeWrapper"),
             patch("sugar.core.loop.ErrorLogMonitor"),
         ):
-
             loop = SugarLoop(str(sugar_config_file))
 
             # Mock the async methods
@@ -124,7 +122,6 @@ class TestSugarLoop:
             patch("sugar.core.loop.CodeQualityScanner") as mock_quality,
             patch("sugar.core.loop.TestCoverageAnalyzer") as mock_coverage,
         ):
-
             loop = SugarLoop(str(sugar_config_file))
 
             # Mock the discovery_modules list directly
@@ -173,7 +170,6 @@ class TestSugarLoop:
             patch("sugar.core.loop.ErrorLogMonitor"),
             patch("sugar.core.loop.WorkflowOrchestrator"),
         ):
-
             loop = SugarLoop(str(sugar_config_file))
 
             # Mock pending work
@@ -217,7 +213,6 @@ class TestSugarLoop:
             patch("sugar.core.loop.ErrorLogMonitor"),
             patch("sugar.core.loop.WorkflowOrchestrator"),
         ):
-
             loop = SugarLoop(str(sugar_config_file))
 
             mock_tasks = [
@@ -259,7 +254,6 @@ class TestSugarLoop:
             patch("sugar.core.loop.ErrorLogMonitor"),
             patch("sugar.core.loop.WorkflowOrchestrator"),
         ):
-
             loop = SugarLoop(str(sugar_config_file))
 
             # Mock single task (since _execute_work processes one at a time)
@@ -309,7 +303,6 @@ class TestSugarLoop:
             patch("sugar.core.loop.FeedbackProcessor") as mock_feedback,
             patch("sugar.core.loop.AdaptiveScheduler") as mock_scheduler,
         ):
-
             loop = SugarLoop(str(sugar_config_file))
 
             # Mock feedback processing with AsyncMock

@@ -5,10 +5,10 @@ Requires proof for all claims of success.
 Blocks task completion if claims lack evidence.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
 import logging
+from typing import Any
 
-from .evidence import Evidence, EvidenceCollector
+from .evidence import EvidenceCollector
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class Claim:
     """A claim that requires proof"""
 
-    def __init__(self, claim_text: str, proof_required: str, must_show: Dict[str, Any]):
+    def __init__(self, claim_text: str, proof_required: str, must_show: dict[str, Any]):
         self.claim_text = claim_text
         self.proof_required = proof_required
         self.must_show = must_show
@@ -35,6 +35,7 @@ class TruthEnforcer:
 
         Args:
             config: Configuration dictionary
+
         """
         enforcement_config = config.get("quality_gates", {}).get(
             "truth_enforcement", {}
@@ -49,8 +50,8 @@ class TruthEnforcer:
         return self.enabled
 
     def verify_claims(
-        self, claims: List[str], evidence_collector: EvidenceCollector
-    ) -> Tuple[bool, List[Claim]]:
+        self, claims: list[str], evidence_collector: EvidenceCollector
+    ) -> tuple[bool, list[Claim]]:
         """
         Verify that all claims have corresponding proof
 
@@ -60,6 +61,7 @@ class TruthEnforcer:
 
         Returns:
             Tuple of (all_proven, list of claims with proof status)
+
         """
         if not self.is_enabled():
             return True, []
@@ -99,6 +101,7 @@ class TruthEnforcer:
 
         Returns:
             Claim object with proof status
+
         """
         # Find matching rule for this claim
         rule = self._find_matching_rule(claim_text)
@@ -149,7 +152,7 @@ class TruthEnforcer:
 
         return claim_obj
 
-    def _find_matching_rule(self, claim_text: str) -> Optional[Dict[str, Any]]:
+    def _find_matching_rule(self, claim_text: str) -> dict[str, Any] | None:
         """Find rule that matches this claim"""
         claim_lower = claim_text.lower()
 
@@ -161,7 +164,7 @@ class TruthEnforcer:
         return None
 
     def _verify_test_execution_proof(
-        self, must_show: Dict[str, Any], evidence: EvidenceCollector, claim: Claim
+        self, must_show: dict[str, Any], evidence: EvidenceCollector, claim: Claim
     ) -> bool:
         """Verify test execution proof exists and meets requirements"""
         test_evidence = [
@@ -194,7 +197,7 @@ class TruthEnforcer:
         return True
 
     def _verify_functional_verification_proof(
-        self, must_show: Dict[str, Any], evidence: EvidenceCollector, claim: Claim
+        self, must_show: dict[str, Any], evidence: EvidenceCollector, claim: Claim
     ) -> bool:
         """Verify functional verification proof exists"""
         func_evidence = [
@@ -229,7 +232,7 @@ class TruthEnforcer:
         return True
 
     def _verify_success_criteria_proof(
-        self, must_show: Dict[str, Any], evidence: EvidenceCollector, claim: Claim
+        self, must_show: dict[str, Any], evidence: EvidenceCollector, claim: Claim
     ) -> bool:
         """Verify success criteria proof exists"""
         criteria_evidence = [
@@ -256,8 +259,8 @@ class TruthEnforcer:
         return True
 
     def can_complete_task(
-        self, claims: List[str], evidence_collector: EvidenceCollector
-    ) -> Tuple[bool, str]:
+        self, claims: list[str], evidence_collector: EvidenceCollector
+    ) -> tuple[bool, str]:
         """
         Determine if task can be completed based on claims and evidence
 
@@ -267,6 +270,7 @@ class TruthEnforcer:
 
         Returns:
             Tuple of (can_complete, reason)
+
         """
         if not self.is_enabled():
             return True, "Truth enforcement disabled"
@@ -294,7 +298,7 @@ class TruthEnforcer:
         return True, "Allowing completion despite unproven claims"
 
     def get_unproven_claims_report(
-        self, claims: List[str], evidence_collector: EvidenceCollector
+        self, claims: list[str], evidence_collector: EvidenceCollector
     ) -> str:
         """
         Generate a report of unproven claims
@@ -305,6 +309,7 @@ class TruthEnforcer:
 
         Returns:
             Markdown report of unproven claims
+
         """
         _, verified_claims = self.verify_claims(claims, evidence_collector)
         unproven = [c for c in verified_claims if not c.has_proof]

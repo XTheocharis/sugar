@@ -8,36 +8,42 @@ This file provides instructions and context for AI coding assistants working wit
 
 - **Package Name**: `sugarai`
 - **Version**: 2.1.0
-- **Python**: 3.11+ (supports 3.11, 3.12, 3.13)
+- **Python**: 3.13 (supports 3.11, 3.12, 3.13)
 - **Entry Point**: `sugar.main:cli`
 
 ## Development Environment
 
-This project supports both **uv** (recommended) and **venv** workflows.
+This project uses **uv** for fast dependency management.
 
-### Using uv (Recommended - Faster)
+### Quick Setup
 ```bash
-# Install dependencies
-uv pip install -e ".[dev,test,github]"
+# Create venv with Python 3.13 and seed packages
+uv venv --python 3.13 --seed .venv
 
-# Run commands
-uv run python -m sugar ...
-uv run pytest tests/
-uv run black .
+# Install dependencies
+uv pip install -e ".[dev,test]"
+
+# Activate and verify
+source .venv/bin/activate
+sugar --version
 ```
 
-### Using venv (Traditional)
+### Session Start Hook
+A Claude Code session hook automatically sets up the environment:
+- `.claude/hooks/setup-dev-env.sh` - Creates venv, installs deps
+- `.claude/settings.json` - Configures the hook
+
+### Run Commands
 ```bash
-# Activate venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
-
-# Install dependencies
-pip install -e ".[dev,test,github]"
-
-# Run commands
-python -m sugar ...
+# With activated venv
+source .venv/bin/activate
 pytest tests/
-black .
+ruff check .
+ruff format .
+
+# Or use uv run
+uv run pytest tests/
+uv run ruff check .
 ```
 
 ## Project Structure
@@ -90,6 +96,9 @@ sugar/
 │   └── dev/                  # Developer documentation
 ├── config/
 │   └── sugar.yaml            # Default configuration template
+├── .claude/                  # Claude Code configuration
+│   ├── hooks/                # Session hooks
+│   └── settings.json         # Hook configuration
 ├── .claude-plugin/           # Claude Code plugin files
 │   ├── commands/             # Slash commands
 │   ├── agents/               # Agent definitions
@@ -126,14 +135,9 @@ sugar/
 
 ### Before Committing
 ```bash
-# Format code
-black sugar tests
-
-# Sort imports
-isort sugar tests
-
-# Lint
-flake8 sugar --max-line-length=88
+# Format and lint with ruff (single tool for both)
+ruff format sugar tests
+ruff check sugar tests --fix
 
 # Run tests
 pytest tests/ -v
@@ -141,9 +145,8 @@ pytest tests/ -v
 
 ### Pre-commit Hooks
 The project uses pre-commit with these hooks:
-- `black` (Python 3.11, line-length 88)
-- `flake8` with `flake8-docstrings`
-- `isort` (black profile)
+- `ruff` - Linting (replaces flake8, isort, pyupgrade)
+- `ruff-format` - Formatting (replaces black)
 - `mypy` with type stubs
 - `bandit` security scanning
 - `pytest` on commit
@@ -298,7 +301,7 @@ sugar:
 
 ### Optional Dependencies
 - `[github]`: `PyGithub>=1.59.0`
-- `[dev]`: black, flake8, isort, mypy, bandit, pre-commit
+- `[dev]`: ruff, mypy, bandit, pre-commit
 - `[test]`: pytest, pytest-asyncio, pytest-cov
 
 ## PR and Commit Guidelines
@@ -316,14 +319,14 @@ Closes #123
 
 ### PR Requirements
 1. Tests pass (`pytest`)
-2. Code formatted (`black`, `isort`)
-3. Linting passes (`flake8`)
+2. Code formatted (`ruff format`)
+3. Linting passes (`ruff check`)
 4. Type checking passes (`mypy`)
 5. Security scan clean (`bandit`)
 
 ## Important Notes
 
-- Always run Black formatting before committing
+- Always run `ruff format` and `ruff check --fix` before committing
 - Sugar uses async/await extensively - use `asyncio.run()` for sync contexts
 - Configuration validation should provide meaningful error messages
 - The Claude CLI is mocked in tests at `/tmp/mock-claude/claude`

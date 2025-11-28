@@ -8,10 +8,21 @@ cd "$(dirname "$0")/../.."
 
 echo "Setting up Sugar development environment..."
 
-# Check if .venv exists, create if not
+# Check if .venv exists with correct Python version, create if not
+REQUIRED_PYTHON="3.13"
+RECREATE_VENV=false
+
 if [ ! -d ".venv" ]; then
-    echo "Creating virtual environment..."
-    uv venv .venv
+    RECREATE_VENV=true
+elif ! .venv/bin/python --version 2>/dev/null | grep -q "Python ${REQUIRED_PYTHON}"; then
+    echo "Upgrading venv to Python ${REQUIRED_PYTHON}..."
+    rm -rf .venv
+    RECREATE_VENV=true
+fi
+
+if [ "$RECREATE_VENV" = true ]; then
+    echo "Creating virtual environment with Python ${REQUIRED_PYTHON}..."
+    uv venv --python "${REQUIRED_PYTHON}" --seed .venv
 fi
 
 # Check if dependencies are installed by verifying sugar is importable

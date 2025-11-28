@@ -4,11 +4,9 @@ Git Operations Utility - Handle git branching, committing, and workflow operatio
 
 import asyncio
 import logging
-import subprocess
 import re
-from typing import Optional, Dict, Any
 from pathlib import Path
-from ..__version__ import get_version_info, __version__
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +88,7 @@ class GitOperations:
             logger.error(f"Error pushing branch {branch_name}: {e}")
             return False
 
-    async def get_current_branch(self) -> Optional[str]:
+    async def get_current_branch(self) -> str | None:
         """Get the name of the current branch"""
         try:
             result = await self._run_git_command(["rev-parse", "--abbrev-ref", "HEAD"])
@@ -130,7 +128,7 @@ class GitOperations:
             logger.error(f"Error checking for uncommitted changes: {e}")
             return False
 
-    async def get_latest_commit_sha(self) -> Optional[str]:
+    async def get_latest_commit_sha(self) -> str | None:
         """Get the SHA of the latest commit"""
         try:
             result = await self._run_git_command(["rev-parse", "HEAD"])
@@ -162,7 +160,7 @@ class GitOperations:
 
         return slug
 
-    def format_commit_message(self, pattern: str, variables: Dict[str, Any]) -> str:
+    def format_commit_message(self, pattern: str, variables: dict[str, Any]) -> str:
         """Format commit message using pattern and variables"""
         try:
             return pattern.format(**variables)
@@ -170,7 +168,7 @@ class GitOperations:
             logger.warning(f"Missing variable {e} in commit message pattern")
             return f"Sugar AI: {variables.get('work_summary', 'Completed work')}"
 
-    def format_pr_title(self, pattern: str, variables: Dict[str, Any]) -> str:
+    def format_pr_title(self, pattern: str, variables: dict[str, Any]) -> str:
         """Format PR title using pattern and variables"""
         try:
             return pattern.format(**variables)
@@ -178,7 +176,7 @@ class GitOperations:
             logger.warning(f"Missing variable {e} in PR title pattern")
             return f"Fix #{variables.get('issue_number', 'unknown')}: {variables.get('issue_title', 'Unknown')}"
 
-    def format_branch_name(self, pattern: str, variables: Dict[str, Any]) -> str:
+    def format_branch_name(self, pattern: str, variables: dict[str, Any]) -> str:
         """Format branch name using pattern and variables"""
         try:
             return pattern.format(**variables)
@@ -186,7 +184,7 @@ class GitOperations:
             logger.warning(f"Missing variable {e} in branch name pattern")
             return f"sugar/issue-{variables.get('issue_number', 'unknown')}"
 
-    async def _run_git_command(self, args: list) -> Dict[str, Any]:
+    async def _run_git_command(self, args: list) -> dict[str, Any]:
         """Run a git command and return the result"""
         cmd = ["git"] + args
 
