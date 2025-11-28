@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/ensure-venv.sh"
+            "command": "cat | .claude/hooks/wrap-bash-with-venv.sh"
           }
         ]
       }

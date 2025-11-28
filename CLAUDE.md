@@ -29,19 +29,31 @@ sugar --version
 ```
 
 ### Claude Code Hooks
-Two hooks automatically manage the development environment:
 
 **SessionStart Hook** (`.claude/hooks/setup-dev-env.sh`):
 - Creates venv with Python 3.13 if missing or outdated
 - Installs project dependencies via `uv pip install -e ".[dev,test]"`
 - Runs `sugar init` to initialize Sugar configuration
 
-**Bash PreToolUse Hook** (`.claude/hooks/ensure-venv.sh`):
-- Automatically activates the venv for all bash commands
-- Skips activation for system commands (git, ls, cd, etc.)
-- Skips if command already uses venv binaries directly
+The hook is configured in `.claude/settings.json`.
 
-Both hooks are configured in `.claude/settings.json`.
+### IMPORTANT: Virtual Environment Activation (Claude Code Web)
+
+On Claude Code Web, **PreToolUse hooks cannot modify bash commands**. You MUST manually activate the venv for all Python-related commands:
+
+```bash
+# ALWAYS prefix Python commands with venv activation:
+source .venv/bin/activate && python script.py
+source .venv/bin/activate && pytest tests/
+source .venv/bin/activate && ruff check .
+source .venv/bin/activate && pip install package
+
+# Or use uv run (doesn't require activation):
+uv run pytest tests/
+uv run python script.py
+```
+
+**DO NOT** run bare `python`, `pytest`, `pip`, or `ruff` commands - they will use the system Python instead of the project venv.
 
 ### Run Commands
 ```bash
