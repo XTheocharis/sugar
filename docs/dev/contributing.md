@@ -12,13 +12,13 @@ Thank you for your interest in contributing to Sugar! This guide will help you g
 
 2. **Set up Development Environment**
    ```bash
-   # Create virtual environment
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   
+   # Create virtual environment with uv (recommended)
+   uv venv --python 3.13 --seed .venv
+   source .venv/bin/activate
+
    # Install in development mode
-   pip install -e ".[dev]"
-   
+   uv pip install -e ".[dev,test]"
+
    # Install pre-commit hooks
    pre-commit install
    ```
@@ -34,10 +34,10 @@ Thank you for your interest in contributing to Sugar! This guide will help you g
 
 ### Prerequisites
 
-- **Python 3.11+**
+- **Python 3.13** (or 3.11+)
+- **uv** (recommended) - [installation guide](https://docs.astral.sh/uv/)
 - **Claude Code CLI** ([installation guide](https://docs.anthropic.com/claude-code))
 - **Git**
-- **Node.js** (for Claude CLI)
 
 ### Installation
 
@@ -46,12 +46,12 @@ Thank you for your interest in contributing to Sugar! This guide will help you g
 git clone https://github.com/yourusername/sugar.git
 cd sugar
 
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
+# Create virtual environment with uv (recommended)
+uv venv --python 3.13 --seed .venv
+source .venv/bin/activate
 
 # Install development dependencies
-pip install -e ".[dev]"
+uv pip install -e ".[dev,test]"
 
 # Install pre-commit hooks
 pre-commit install
@@ -110,9 +110,8 @@ def test_my_feature(cli_runner):
 
 We use pre-commit hooks to ensure code quality:
 
-- **black** - Code formatting
-- **flake8** - Linting
-- **isort** - Import sorting
+- **ruff** - Linting (replaces flake8, isort, pyupgrade)
+- **ruff-format** - Code formatting (replaces black)
 - **mypy** - Type checking
 - **bandit** - Security scanning
 
@@ -121,20 +120,15 @@ We use pre-commit hooks to ensure code quality:
 pre-commit run --all-files
 
 # Run specific hook
-pre-commit run black --all-files
+pre-commit run ruff --all-files
 ```
 
 ### Manual Quality Checks
 
 ```bash
-# Format code
-black sugar/ tests/
-
-# Sort imports
-isort sugar/ tests/
-
-# Lint code
-flake8 sugar/ tests/
+# Format and lint with ruff
+ruff format sugar/ tests/
+ruff check sugar/ tests/ --fix
 
 # Type checking
 mypy sugar/
@@ -204,7 +198,7 @@ Then create a pull request on GitHub.
 
 ### Python Style
 
-- **PEP 8** compliance (enforced by black and flake8)
+- **PEP 8** compliance (enforced by ruff)
 - **Type hints** for all functions and methods
 - **Google-style docstrings**
 - **Maximum line length**: 88 characters
@@ -349,8 +343,8 @@ Any other context or screenshots.
 ### PR Checklist
 
 - [ ] Tests pass (`pytest`)
-- [ ] Code is formatted (`black`, `isort`)
-- [ ] Code passes linting (`flake8`)
+- [ ] Code is formatted (`ruff format`)
+- [ ] Linting passes (`ruff check`)
 - [ ] Type checking passes (`mypy`)
 - [ ] Security scan passes (`bandit`)
 - [ ] Documentation updated if needed

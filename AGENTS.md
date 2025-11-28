@@ -34,7 +34,7 @@ sugar --help
 ```
 
 ### Python Environment
-- **Required Python**: 3.11+ (supports 3.11, 3.12, 3.13)
+- **Required Python**: 3.13 (supports 3.11, 3.12, 3.13)
 - **Dependencies**: See `pyproject.toml` for complete list
 - **Key libraries**: Click, PyYAML, SQLAlchemy, aiosqlite
 
@@ -65,11 +65,9 @@ pytest tests/test_core_loop.py
 
 ### Code Quality Checks
 ```bash
-# Linting
-flake8 sugar --max-line-length=88
-
-# Code formatting
-black sugar tests
+# Linting and formatting with ruff
+ruff check sugar tests --fix
+ruff format sugar tests
 
 # Type checking (currently relaxed due to extensive work needed)
 mypy sugar  # May have many warnings - type annotations in progress
@@ -96,10 +94,9 @@ Follow conventional commit style:
 - `ci: description` - CI/CD changes
 
 ### Pre-commit Requirements
-1. **Code formatting**: `black sugar tests`
-2. **Linting**: `flake8 sugar --max-line-length=88`
-3. **Basic tests**: `pytest tests/` (relaxed failures acceptable)
-4. **Security check**: `bandit -r sugar/` (review results)
+1. **Linting/formatting**: `ruff check --fix && ruff format`
+2. **Basic tests**: `pytest tests/` (relaxed failures acceptable)
+3. **Security check**: `bandit -r sugar/` (review results)
 
 ### Testing Requirements
 - All new features must include basic tests
