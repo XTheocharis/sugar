@@ -1,12 +1,15 @@
 {
-  "hooks": {
+  "env": {
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1"
+  },
+    "hooks": {
     "SessionStart": [
       {
-        "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/setup-dev-env.sh"
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.sh\"",
+            "timeout": 600
           }
         ]
       }
@@ -17,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat | .claude/hooks/wrap-bash-with-venv.sh"
+            "command": "cat | ${CLAUDE_PROJECT_DIR}/.claude/hooks/pre-bash.sh"
           }
         ]
       }
