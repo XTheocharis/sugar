@@ -12,6 +12,10 @@ log() {
     echo "$1" >> "$LOG_FILE"
 }
 
+log "=== Environment at START ==="
+env >> "$LOG_FILE" 2>&1
+log "=== End of START environment ==="
+log ""
 log "Setting up Sugar development environment..."
 
 # Check if .venv exists with correct Python version, create if not
@@ -49,4 +53,8 @@ if [ ! -d ".sugar" ]; then
 fi
 
 log "Development environment ready!"
+log ""
+log "=== Environment at END ==="
+env >> "$LOG_FILE" 2>&1
+log "=== End of END environment ==="
 echo "Sugar v${VERSION} ready (log: $LOG_FILE)"
