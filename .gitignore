@@ -153,8 +153,10 @@ sugar.log
 *.db
 logs/
 
-# Claude CLI
-.claude/
+# Claude CLI (user-specific files)
+.claude/*
+!.claude/hooks/
+!.claude/settings.json
 sugar_context.json
 sugar-context.json
 
