@@ -21,17 +21,8 @@ if [ -z "$COMMAND" ]; then
     exit 0
 fi
 
-# Find bootstrap using python -c oneliner (same pattern used throughout the repo)
-BOOTSTRAP_PATH=$(ls -d /home/user/* | head -1)
-
-if [ -z "$BOOTSTRAP_PATH" ] || [ ! -f "$BOOTSTRAP_PATH" ]; then
-    # Can't find bootstrap, pass through unchanged with new format
-    echo "{\"decision\":\"approve\",\"updatedInput\":$TOOL_INPUT}"
-    exit 0
-fi
-
 # Wrap command to execute through bootstrap with proper escaping
 # Format: bootstrap -- bash -c "COMMAND"
 # jq's @sh formatter properly escapes the command for shell execution
-echo "$TOOL_INPUT" | jq --arg bootstrap "$BOOTSTRAP_PATH" --arg cmd "$COMMAND" \
-    '{decision: "approve", updatedInput: {command: "\($bootstrap)/.venv/bin/activate && bash -c \($cmd | @sh)"}}'
+echo "$TOOL_INPUT" | jq --arg cmd "$COMMAND" \
+    '{decision: "approve", updatedInput: {command: "$(ls -d /home/user/* | head -1)/.venv/bin/activate && bash -c \($cmd | @sh)"}}'
