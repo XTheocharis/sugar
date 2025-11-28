@@ -363,8 +363,9 @@ pip install -e ".[dev,test,github]"
 # Run tests
 pytest tests/ -v
 
-# Format code
-black .
+# Format and lint code
+ruff format .
+ruff check . --fix
 ```
 
 ## License

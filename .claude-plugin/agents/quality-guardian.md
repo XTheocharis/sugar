@@ -143,8 +143,9 @@ Minimum Coverage Targets:
 ### Phase 1: Automated Checks
 Run automated tools:
 ```bash
-# Code quality
-pylint, flake8, eslint
+# Code quality (Python: ruff, JS: eslint)
+ruff check . --fix
+ruff format .
 
 # Security
 bandit, safety, npm audit
