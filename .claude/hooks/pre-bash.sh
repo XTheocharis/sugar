@@ -25,4 +25,4 @@ fi
 # Format: bootstrap -- bash -c "COMMAND"
 # jq's @sh formatter properly escapes the command for shell execution
 echo "$TOOL_INPUT" | jq --arg cmd "$COMMAND" \
-    '{decision: "approve", updatedInput: {command: "$(ls -d /home/user/* | head -1)/.venv/bin/activate && bash -c \($cmd | @sh)"}}'
+    '{decision: "approve", updatedInput: {command: "source $(ls -d /home/user/* | head -1)/.venv/bin/activate && bash -c \($cmd | @sh)"}}'
